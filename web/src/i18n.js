@@ -208,6 +208,24 @@ const STRINGS = {
     cancel: 'Cancel',
     delete: 'Delete',
 
+    ret_title: 'Scenario: block the best ditches',
+    ret_slider: 'Block the top {n} of {of} high-priority ditches',
+    ret_slider_aria: 'Number of high-priority ditches to block, out of {of}',
+    ret_per_fill: 'held per filling · {km} km of ditch',
+    ret_compare: 'About {dur} of the Rudawa water treatment plant\'s output (22–28 thousand m³ a day).',
+    ret_zero: 'Move the slider to add ditches.',
+    ret_minutes: '{a}–{b} minutes',
+    ret_hours: '{a}–{b} hours',
+    ret_days: '{a}–{b} days',
+    ret_show_map: 'Show these ditches on the map',
+    ret_hide_map: 'Hide from the map',
+    ret_how: 'How is this estimated?',
+    ret_assumptions: 'Heuristic, not a hydraulic model: length × an assumed cross-section of {cs} m² (a small field ditch about 0.5 m wide at the bottom and 0.8 m deep) × a fill factor of {ff} (a chain of small dams keeps each stretch about half full). That is {per_m} m³ per metre of ditch. BDOT10k has no ditch dimensions, so every ditch gets the same profile.',
+    ret_recharge: 'The number is per filling: a blocked ditch refills after each rain. Water held in a ditch also soaks into the soil and raises the water table along it. That groundwater recharge feeds the river in dry summers and is probably the bigger benefit, but it is not counted here.',
+    ret_source: 'Plant output:',
+    ditch_storage: 'Storage if blocked',
+    ditch_storage_note: 'Per filling, heuristic: length × 1 m² × 0.5. Rank {rank} in its catchment. Also recharges groundwater (not counted).',
+
     about_html: `
       <h3>Why</h3>
       <p>Kraków takes about 97% of its tap water from rivers. Rudawa and Dłubnia are two of them, and in 2026 Rudawa and Prądnik ran at their lowest levels since 1991. Scientists blame lost retention: drained fields and forests, sealed surfaces and straightened channels. A <em>sponge city</em> needs a sponge landscape around it.</p>
@@ -442,6 +460,24 @@ const STRINGS = {
     rep_this_ditch: 'Zgłoś obserwację tego rowu',
     cancel: 'Anuluj',
     delete: 'Usuń',
+
+    ret_title: 'Scenariusz: zablokuj najlepsze rowy',
+    ret_slider: 'Zablokuj {n} najlepszych z {of} rowów o wysokim priorytecie',
+    ret_slider_aria: 'Liczba rowów o wysokim priorytecie do zablokowania, z {of}',
+    ret_per_fill: 'przy jednym napełnieniu · {km} km rowów',
+    ret_compare: 'To ok. {dur} produkcji Zakładu Uzdatniania Wody Rudawa (22–28 tys. m³ na dobę).',
+    ret_zero: 'Przesuń suwak, aby dodać rowy.',
+    ret_minutes: '{a}–{b} min',
+    ret_hours: '{a}–{b} godz.',
+    ret_days: '{a}–{b} doby',
+    ret_show_map: 'Pokaż te rowy na mapie',
+    ret_hide_map: 'Ukryj na mapie',
+    ret_how: 'Jak to policzono?',
+    ret_assumptions: 'Heurystyka, nie model hydrauliczny: długość × przyjęty przekrój {cs} m² (mały rów polny, ok. 0,5 m szerokości dna i 0,8 m głębokości) × współczynnik wypełnienia {ff} (szereg małych zastawek utrzymuje każdy odcinek mniej więcej w połowie pełny). Daje to {per_m} m³ na metr rowu. BDOT10k nie podaje wymiarów rowów, więc każdy rów ma ten sam profil.',
+    ret_recharge: 'Liczba dotyczy jednego napełnienia: zablokowany rów napełnia się po każdym deszczu. Woda w rowie wsiąka też w glebę i podnosi zwierciadło wód gruntowych. To zasilanie wód podziemnych podtrzymuje przepływ rzeki w suche lata i jest zapewne większą korzyścią, ale nie jest tu liczone.',
+    ret_source: 'Produkcja zakładu:',
+    ditch_storage: 'Retencja po zablokowaniu',
+    ditch_storage_note: 'Przy jednym napełnieniu, heurystyka: długość × 1 m² × 0,5. Miejsce {rank} w zlewni. Zasila też wody gruntowe (nieliczone).',
 
     about_html: `
       <h3>Dlaczego</h3>

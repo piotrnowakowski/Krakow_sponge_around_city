@@ -1,4 +1,5 @@
 import { t, fmt } from './i18n.js';
+import { bindScenario, scenarioHtml } from './scenario.js';
 import { LANDCOVER_COLORS, OVERLAYS, PRIORITY_COLORS, ROOM_COLORS, landcoverOpacity, setOverlay } from './map.js';
 import { VIEWS, selectView } from './views.js';
 
@@ -137,6 +138,7 @@ export function renderCatchmentsPanel(el, stats, { onZoom, selected = null }) {
               .join('')}</div></div>
           <div><span>${t('weirs')}</span><b>${s.weirs}</b></div>
         </div>
+        ${scenarioHtml(id)}
         <button class="btn" data-zoom="${id}">${t(selected ? 'focus_recenter' : 'zoom')}</button>
       </article>`;
       })
@@ -147,4 +149,5 @@ export function renderCatchmentsPanel(el, stats, { onZoom, selected = null }) {
     </aside>`;
   el.querySelectorAll('[data-zoom]').forEach((b) => b.addEventListener('click', () => onZoom(b.dataset.zoom)));
   el.querySelector('.focus-select')?.addEventListener('change', (e) => onZoom(e.target.value));
+  bindScenario(el);
 }

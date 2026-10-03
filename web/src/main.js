@@ -5,6 +5,7 @@ import { addLayers, bindPopups, createMap, createCatchmentFocus, DATA, OVERLAYS,
 import { renderCatchmentsPanel, renderLayersPanel, renderLegend } from './panels.js';
 import { fetchLiveGauges, fetchLiveWarnings, renderDroughtPanel } from './drought.js';
 import { addReportLayers, initReports, openForm, refreshReportLayer, renderReportsPanel } from './reports.js';
+import { addScenarioLayer, loadRetention } from './scenario.js';
 
 const state = createViewState();
 import { applyView, createViewState } from './views.js';
@@ -104,12 +105,13 @@ async function main() {
   focusView = createCatchmentFocus(map);
   window.__map = map; // handy for debugging and demo scripts
 
-  const [stats, drought, catchments] = await Promise.all([getJson('stats'), getJson('drought'), getJson('catchments')]);
+  const [stats, drought, catchments] = await Promise.all([getJson('stats'), getJson('drought'), getJson('catchments'), loadRetention(DATA)]);
   app = { ...app, stats, drought, catchments };
   const live = await fetchLiveGauges(Object.keys(drought.stations));
 
   const initializeLayers = async () => {
     await addLayers(map, gaugeFeatures(drought, live));
+    addScenarioLayer(map);
     addReportLayers(map);
     applyView(map, state);
     layersReady = true;

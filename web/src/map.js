@@ -253,6 +253,8 @@ export function bindPopups(map, { onGauge, onReport }) {
       ${row(t('ditch_houses'), `${fmt(p.dist_building_m, 0)} m`)}${bar(p.s_houses, 30, PRIORITY_COLORS[p.priority])}
       ${row(t('ditch_slope'), `${fmt(p.slope_pct, 1)}%`)}${bar(p.s_flat, 20, PRIORITY_COLORS[p.priority])}
       ${row(t('ditch_length'), `${fmt(p.length_m, 0)} m`)}${bar(p.s_length, 10, PRIORITY_COLORS[p.priority])}
+      <div class="pop-storage">${row(t('ditch_storage'), `≈ ${fmt(p.volume_m3, 0)} m³`)}
+        <p>${t('ditch_storage_note', { rank: p.rank })}</p></div>
       <p class="pop-note">${t('ditch_note')}</p>
       <button type="button" class="btn small pop-report">${t('rep_this_ditch')}</button>`).addTo(map);
     const lngLat = e.lngLat;

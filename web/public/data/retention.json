@@ -1,0 +1,39 @@
+{
+ "assumptions": {
+  "cross_section_m2": 1.0,
+  "fill_factor": 0.5
+ },
+ "reference": {
+  "name": "ZUW Rudawa",
+  "production_m3_day": [
+   22000,
+   28000
+  ],
+  "capacity_m3_day": 55000,
+  "source": "Wodociągi Miasta Krakowa, Schemat techniczno-organizacyjny ZUW Rudawa",
+  "url": "https://wodociagi.krakow.pl/admin/files/Files/foldery_ulotki/WMK-ulotka_schemat_techniczno-organizacyjny_ZUW_Rudawa.pdf"
+ },
+ "catchments": {
+  "dlubnia": {
+   "ditches": 141,
+   "high_count": 21,
+   "high_length_km": 6.8,
+   "high_volume_m3": 3391,
+   "all_volume_m3": 16202
+  },
+  "pradnik": {
+   "ditches": 41,
+   "high_count": 7,
+   "high_length_km": 2.2,
+   "high_volume_m3": 1117,
+   "all_volume_m3": 5532
+  },
+  "rudawa": {
+   "ditches": 426,
+   "high_count": 189,
+   "high_length_km": 40.1,
+   "high_volume_m3": 20051,
+   "all_volume_m3": 43451
+  }
+ }
+}

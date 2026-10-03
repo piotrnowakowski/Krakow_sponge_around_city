@@ -52,6 +52,7 @@ The key insight is that **rainfall was about normal, yet the rivers hit record l
   - length
 
   This is a transparent screening heuristic, not a hydrological model. Blocking any ditch needs the owner, Wody Polskie and a water-law permit.
+- **Retention potential, a transparent estimate:** every ditch popup shows roughly how much water it would hold if blocked, and each catchment card has a scenario slider, "block the top N high-priority ditches", that adds up the volume, highlights those ditches on the map and compares the total with the Rudawa water treatment plant's daily output. For the Rudawa catchment, blocking all 189 high-priority ditches (40 km) holds about **20,000 m³ per filling, roughly 17–22 hours of the plant's production**. See [Retention estimate](#retention-estimate) for the assumptions.
 - **Room for the river:** every 250 m reach of the main stems gets the share of a 2×100 m corridor that is free of buildings and sealed land. It shows where meanders and floodplains could come back, and where the city has closed in on the river.
 - **Live IMGW gauges and drought warnings** fetched directly in the browser, with 12-month hydrographs against the 1991–2020 range and SNQ/NNQ thresholds.
 - **Year ranking:** mean flow from 1 January to date for every year since 1991, from the verified IMGW archive.
@@ -73,6 +74,7 @@ pipeline/                    Python, writes web/public/data/*.json
   catchments.py    DEM -> burned streams -> D8 flow -> catchment labels from MPHP-coded rivers
   validate.py      overlays the result on the official MPHP10k WMS (docs/validation_mphp.png)
   layers.py        land cover, rivers, ditch scores, corridors, buildings, weirs, stats.json
+  retention.py     storage estimate per ditch, per-catchment ranking, retention.json
   drought.py       IMGW operational + archive discharge, IMGW warnings, ERA5 via Open-Meteo
   run_all.py       runs everything
 web/                         Vite + MapLibre GL + Chart.js static site
@@ -97,6 +99,30 @@ The official MPHP10k catchment polygons are published only as a WMS picture, so 
 Most of the remaining difference is in the lowest, urban reaches, where rivers run in culverts.
 
 ![Validation against MPHP](docs/validation_mphp.png)
+
+### Retention estimate
+
+`pipeline/retention.py` adds a storage estimate to every BDOT10k ditch. It is a heuristic, not a hydraulic model:
+
+```
+volume [m³] = length [m] × cross-section [m²] × fill factor
+            = length × 1.0 × 0.5  ->  0.5 m³ per metre of ditch
+```
+
+- **Cross-section 1.0 m²:** a typical small field ditch, about 0.5 m wide at the bottom and 0.8 m deep with 1:1 side slopes ((0.5 + 0.8) × 0.8 ≈ 1.0 m²). BDOT10k has no ditch dimensions, so every ditch gets the same profile.
+- **Fill factor 0.5:** a chain of small dams holds water at full depth just upstream of each dam, tapering to nothing at the next dam upstream, so on average about half of the channel is full.
+- **Per filling:** a blocked ditch refills after each rain, so the seasonal effect is larger than one filling.
+- **Groundwater recharge is not counted.** Water held in a ditch soaks into the soil and raises the water table along it. That recharge sustains summer base flow and is probably the bigger benefit, but estimating it needs soil and groundwater data we do not have.
+- **Ranking:** within each catchment, ditches are ranked by their priority score (longer first on ties). The scenario slider walks down that list.
+- **Reference:** the Rudawa water treatment plant (ZUW Rudawa) currently produces **22,000–28,000 m³ per day** (maximum capacity 55,000 m³/day), according to Wodociągi Miasta Krakowa's [technical leaflet for ZUW Rudawa](https://wodociagi.krakow.pl/admin/files/Files/foldery_ulotki/WMK-ulotka_schemat_techniczno-organizacyjny_ZUW_Rudawa.pdf).
+
+| Catchment | High-priority ditches | Length | Held per filling (top N = all high) | All mapped ditches |
+|---|---|---|---|---|
+| Rudawa | 189 | 40.1 km | ≈ 20,100 m³ | ≈ 43,500 m³ |
+| Prądnik | 7 | 2.2 km | ≈ 1,100 m³ | ≈ 5,500 m³ |
+| Dłubnia | 21 | 6.8 km | ≈ 3,400 m³ | ≈ 16,200 m³ |
+
+These are small numbers next to a river, and that is the honest point: one blocked ditch is a drop, but there are many more ditches than BDOT10k shows, and the real gain is the water that soaks in and keeps the river flowing in August.
 
 ## Run it yourself
 
@@ -124,6 +150,7 @@ The processed data are committed in `web/public/data`, so the web app runs witho
 | Orthophoto and LiDAR shaded relief | GUGiK WMS | basemaps |
 | Basemap | [OpenFreeMap](https://openfreemap.org), © OpenMapTiles, © OpenStreetMap contributors | basemap |
 | Water treatment plant locations | © OpenStreetMap contributors (ODbL) | map markers |
+| ZUW Rudawa production (22–28 thousand m³/day) | Wodociągi Miasta Krakowa, [technical leaflet](https://wodociagi.krakow.pl/admin/files/Files/foldery_ulotki/WMK-ulotka_schemat_techniczno-organizacyjny_ZUW_Rudawa.pdf) | retention scenario reference |
 
 ## Limitations
 
@@ -138,7 +165,7 @@ The processed data are committed in `web/public/data`, so the web app runs witho
 1. **Citizen reports, phase 2:** a small moderated store (e.g. GitHub issues → GeoJSON in the repo via an Action) so that everyone's reports appear on the map, not only your own.
 2. **LiDAR ditch detection:** automatic mapping of the ditches missing from BDOT10k, using the 1 m GUGiK DEM.
 3. **Groundwater:** PIG-PIB monitoring wells and Copernicus soil-moisture anomaly layers.
-4. **Retention potential:** estimated m³ held per blocked ditch and per restored floodplain.
+4. **Retention potential, phase 2:** floodplain storage for the "room for the river" reaches, and a groundwater-recharge estimate once soil and well data are in.
 5. **Renaturalisation support:** link corridor reaches to the Wody Polskie Dłubnia renaturalisation concept and to the national renaturalisation programme (KPRWP).
 
 ## Licence

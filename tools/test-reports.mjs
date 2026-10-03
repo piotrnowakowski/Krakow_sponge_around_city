@@ -70,6 +70,8 @@ await page.waitForSelector('.maplibregl-popup .rep-card');
 await page.screenshot({ path: `${out}/4-popup.png` });
 
 // 7. Ditch popup -> report button opens the form with type "ditch"
+await page.click('.tabs [data-tab=layers]');
+await page.click('[data-view=ditches]');
 const ditchPt = await page.evaluate(async () => {
   const map = window.__map;
   const data = await (await fetch('data/ditches.json')).json();
