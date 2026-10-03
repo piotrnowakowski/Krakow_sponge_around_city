@@ -37,7 +37,7 @@ def get_json(url, headers=HEADERS, params=None, tries=4):
     for attempt in range(tries):
         try:
             r = requests.get(url, headers=headers, params=params, timeout=120)
-        except requests.ConnectionError:
+        except (requests.ConnectionError, requests.Timeout):
             if attempt == tries - 1:
                 raise
             time.sleep(10 * (attempt + 1))
@@ -271,19 +271,39 @@ def main():
     catchments = gpd.read_file(OUT / "catchments.json")
     print("IMGW archive 1991-")
     history = archive_daily(set(IMGW_STATIONS))
+    # Keep the previous values for any source that is down, instead of failing the refresh.
+    previous_path = OUT / "drought.json"
+    previous = json.loads(previous_path.read_text(encoding="utf-8")) if previous_path.exists() else {}
+
+    def keep_previous(section, key, build):
+        try:
+            return build()
+        except Exception as exc:  # noqa: BLE001 - any source failure falls back to the snapshot
+            old = previous.get(section, {}).get(key)
+            if old is None:
+                raise
+            print(f"  ! {section}/{key}: {type(exc).__name__}, keeping previous data")
+            return old
+
     print("IMGW gauges")
-    stations = {code: station_block(code, meta, history) for code, meta in IMGW_STATIONS.items()}
+    stations = {code: keep_previous("stations", code, lambda c=code, m=meta: station_block(c, m, history))
+                for code, meta in IMGW_STATIONS.items()}
     for s in stations.values():
         print(f"  {s['river']:8s} {s['name']:8s} Q={s['current']['q']} SNQ={s['thresholds']['SNQ']} "
               f"days<SNQ={s['days_below_snq']} rank={s['rank_driest_since_1991']}/{s['years_compared']}")
     print("IMGW warnings")
-    warnings = hydro_warnings()
+    try:
+        warnings = hydro_warnings()
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ! warnings: {type(exc).__name__}, keeping previous data")
+        warnings = previous.get("warnings", [])
     print(f"  {len(warnings)} active warnings in Małopolska")
     print("ERA5 climate")
     climate = {}
     for _, c in catchments.iterrows():
         p = c.geometry.representative_point()
-        climate[c["id"]] = climate_block(round(p.y, 2), round(p.x, 2))
+        climate[c["id"]] = keep_previous("climate", c["id"],
+                                         lambda p=p: climate_block(round(p.y, 2), round(p.x, 2)))
         print(f"  {c['id']:8s} {climate[c['id']]['summary']}")
 
     out = {
