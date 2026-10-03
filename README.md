@@ -33,7 +33,7 @@ In 2026, Poland had a severe hydrological drought. Researchers point to lost **r
 | Arable land / forest | 33% / 30% | 49% / 17% | 63% / 12% |
 | Sealed surfaces | 14.5% | 16.7% | 12.0% |
 | Drainage ditches in BDOT10k | 87 km (40 km high priority) | 11 km | 32 km |
-| Main-stem corridor with room to meander | 14.8 of 17.9 km | 28.1 of 38.6 km | 42.1 of 56.2 km |
+| Main-stem screening: fewer mapped constraints (updated 4 October) | 6.4 of 17.8 km | 8.5 of 38.5 km | 12.4 of 56.2 km |
 
 An IMGW **hydrological drought warning for the Rudawa and Prądnik catchments** has been active since **4 July 2026**.
 
@@ -54,7 +54,9 @@ The key insight is that **rainfall was about normal, yet the rivers hit record l
   This is a transparent screening heuristic, not a hydrological model. Blocking any ditch needs the owner, Wody Polskie and a water-law permit.
 - **Retention potential, a transparent estimate:** every ditch popup shows roughly how much water it would hold if blocked, and each catchment card has a scenario slider, "block the top N high-priority ditches", that adds up the volume, highlights those ditches on the map and compares the total with the Rudawa water treatment plant's daily output. For the Rudawa catchment, blocking all 189 high-priority ditches (40 km) holds about **20,000 m³ per filling, roughly 17–22 hours of the plant's production**. See [Retention estimate](#retention-estimate) for the assumptions.
 - **LiDAR ditch detection, an experimental pilot:** in one 2×2 km tile of drained forest west of Krzeszowice, narrow linear depressions are detected automatically in the 1 m GUGiK LiDAR terrain model, and everything within 10 m of a mapped ditch or river is removed. The result, **12.5 km of candidate unmapped ditches next to 11.4 km of mapped ditches and streams**, is a separate, clearly labelled map layer. See [LiDAR pilot](#lidar-pilot-experimental).
-- **Room for the river:** every 250 m reach of the main stems gets the share of a 2×100 m corridor that is free of buildings and sealed land. It shows where meanders and floodplains could come back, and where the city has closed in on the river.
+- **Room for the river:** conservative screening on segments no longer than 50 m, combining the unbuilt/unsealed share of a corridor extending 100 m on each side with the shortest distance from the whole mapped river centreline segment to a building footprint. Red means a building within 30 m **or** at least 50% built/sealed area; amber means a building within 100 m **or** less than 80% unbuilt/unsealed area; green means fewer mapped constraints. Building proximity overrides the area average, including near reach endpoints. The 30 m / 100 m thresholds are app heuristics, not legal setbacks, surveyed bank clearances, or proof that restoration is feasible. Missing buildings, roads, embankments, terrain and land ownership still need local assessment. This replaces the former 250 m area-only score, which could show a built-up riverside as yellow or green.
+
+  Rebuild the layer and catchment totals from cached source data with `python pipeline/rebuild_corridors.py`; run geometry regressions with `python -m unittest discover -s pipeline -p test_corridors.py`.
 - **Live IMGW gauges and drought warnings** fetched directly in the browser, with 12-month hydrographs against the 1991–2020 range and SNQ/NNQ thresholds.
 - **Year ranking:** mean flow from 1 January to date for every year since 1991, from the verified IMGW archive.
 - **ERA5 climate panel:** cumulative climatic water balance 2026 vs 2025 vs normal, monthly rainfall, and soil moisture anomaly.

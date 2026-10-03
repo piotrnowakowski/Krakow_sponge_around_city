@@ -13,7 +13,7 @@ const STRINGS = {
     view_ditches_hint: 'Ditches colored by retention priority. Zoom in and click a ditch to see its score and assessment.',
     view_corridors: 'Room for the river',
     view_corridors_d: 'Explore space and barriers',
-    view_corridors_hint: 'See where rivers have space to meander, alongside nearby buildings, weirs and dams. Zoom in to see buildings; click a corridor for its assessment.',
+    view_corridors_hint: "Screen nearby buildings and sealed land along short river segments. Red flags strong mapped constraints; green means fewer mapped constraints, not confirmed space for restoration. Click a segment for the reason.",
     view_landcover: 'Landscape',
     view_landcover_d: 'Land cover and protected areas',
     view_landcover_hint: 'Explore forests, fields and sealed surfaces together with protected areas and rivers.',
@@ -52,7 +52,7 @@ const STRINGS = {
     lyr_ditches: 'Drainage ditches: retention priority',
     lyr_ditches_d: 'BDOT10k ditches scored 0–100: land use, distance to houses, slope, length. Click a ditch for the breakdown.',
     lyr_corridors: 'Room for the river',
-    lyr_corridors_d: 'Share of a 2×100 m corridor along the main stems that is free of buildings and sealed land: where meanders and floodplains can come back.',
+    lyr_corridors_d: "Screening on segments up to 50 m: buildings within 30 m of the mapped river centreline override the open-land average and turn the segment red. Click for distances and the classification rule.",
     lyr_buildings: 'Buildings in river corridors',
     lyr_buildings_d: 'BDOT10k buildings within 100 m of the main stems.',
     lyr_weirs: 'Weirs and dams',
@@ -76,9 +76,9 @@ const STRINGS = {
     pr_high: 'High: block first',
     pr_medium: 'Medium',
     pr_low: 'Low',
-    room_open: 'Open (≥80% free)',
-    room_partial: 'Partial (50–80%)',
-    room_constrained: 'Constrained (<50%)',
+    room_open: "Fewer mapped constraints",
+    room_partial: "Potential constraints",
+    room_constrained: "Strong mapped constraints",
     gauge_low: 'Below SNQ',
     gauge_ok: 'Above SNQ',
 
@@ -89,9 +89,19 @@ const STRINGS = {
     ditch_slope: 'Slope',
     ditch_length: 'Length',
     ditch_note: 'A screening score, not a design. Any blocking needs the owner, Wody Polskie and a water-law permit.',
-    corridor_title: 'River reach (250 m)',
-    corridor_free: 'Free corridor',
-    corridor_built: 'Buildings & sealed land',
+    corridor_title: "River segment ({length} m)",
+    corridor_method: 'How is this classified?',
+    corridor_free: "Unbuilt / unsealed area",
+    corridor_built: "Built / sealed area",
+    corridor_distance: "Nearest mapped building",
+    corridor_distance_note: "Shortest distance from this segment’s mapped centreline to a building footprint; not from a surveyed bank.",
+    corridor_rule: "Screening rule: red if a building is within 30 m or at least 50% of the 2×100 m corridor is built/sealed. Amber if a building is within 100 m or less than 80% is unbuilt/unsealed. Otherwise green. These are app heuristics, not legal setbacks or a feasibility assessment; unmapped constraints may remain.",
+    corridor_reason_close_building: "Building within 30 m of the river centreline.",
+    corridor_reason_nearby_building: "Building 30–100 m from the river centreline.",
+    corridor_reason_sealed: "At least half of the corridor is built or sealed.",
+    corridor_reason_mixed: "Less than 80% of the corridor is unbuilt and unsealed.",
+    corridor_reason_open: "No mapped building within 100 m and at least 80% unbuilt/unsealed area.",
+    corridor_no_building: "No mapped building in source area",
     weir_title: 'Hydraulic structure',
 
     area: 'Area',
@@ -104,7 +114,7 @@ const STRINGS = {
     ditch_density: '{km} km · {density} km/km²',
     high_priority: 'high-priority ditches',
     corridor_room: 'Main-stem corridor',
-    open_km: '{open} of {total} km have room to meander',
+    open_km: "{open} of {total} km have fewer mapped constraints",
     weirs: 'Weirs and dams',
     zoom: 'Explore catchment',
     focus_back: 'Show all catchments',
@@ -256,7 +266,7 @@ const STRINGS = {
     tour3_title: 'Ditches drain the landscape',
     tour3_text: 'Drainage ditches move rain off fields and forests within hours. BDOT10k maps {km} km of them; on the LiDAR relief here you can see many more (violet: found automatically, experimental). Pink ditches are the best ones to block. Blocking all {n} high-priority ditches in the Rudawa catchment would hold about <b>{vol} m³ per filling</b>, {h1}–{h2} hours of the Rudawa plant\'s output, and let it soak into the ground.',
     tour4_title: 'Room for the river',
-    tour4_text: "Where a river still has space, meanders and wet meadows can come back and hold water in the valley. Green reaches have room; red ones are hemmed in by buildings. {open} of {total} km of the Prądnik's main stem still have room. Seen a dry stream or a ditch that is not on the map? Report it.",
+    tour4_text: "River restoration needs local checks. Red segments flag buildings within 30 m of the mapped centreline or heavily built/sealed land. Green means fewer mapped constraints, not proven room for meanders. {open} of {total} km of the Prądnik main stem meet this screening rule. Report missing features to improve the map.",
 
     about_html: `
       <h3>Why</h3>
@@ -265,7 +275,7 @@ const STRINGS = {
       <ul>
         <li>Delineates the three catchments from open data and checks them against the official MPHP map.</li>
         <li>Scores every mapped drainage ditch for "block it first" potential: land use, distance to houses, slope, length.</li>
-        <li>Measures how much room each 250 m river reach has for meanders and floodplains.</li>
+        <li>Screens mapped building proximity and sealed land on river segments up to 50 m; this does not establish restoration feasibility.</li>
         <li>Tracks the 2026 drought: live IMGW gauges and warnings, 35 years of flow records, ERA5 water balance.</li>
         <li>Collects citizen observations of ditches, streams, springs and culverts, stored in your browser and sent to the project only when you choose.</li>
       </ul>
@@ -298,7 +308,7 @@ const STRINGS = {
     view_ditches_hint: 'Kolory rowów pokazują priorytet retencji. Przybliż mapę i kliknij rów, aby zobaczyć ocenę i jej składowe.',
     view_corridors: 'Miejsce dla rzeki',
     view_corridors_d: 'Przestrzeń i przeszkody',
-    view_corridors_hint: 'Sprawdź, gdzie rzeka ma miejsce na meandry, oraz zobacz pobliskie budynki, jazy i zapory. Przybliż mapę, by zobaczyć budynki; kliknij korytarz, by poznać ocenę.',
+    view_corridors_hint: "Sprawdź pobliskie budynki i uszczelnienie terenu wzdłuż krótkich odcinków rzek. Czerwony oznacza silne ograniczenia, zielony mniej rozpoznanych ograniczeń, a nie potwierdzone miejsce na renaturyzację. Kliknij odcinek, by poznać przyczynę.",
     view_landcover: 'Krajobraz',
     view_landcover_d: 'Teren i obszary chronione',
     view_landcover_hint: 'Lasy, pola i powierzchnie uszczelnione wraz z obszarami chronionymi i rzekami.',
@@ -337,7 +347,7 @@ const STRINGS = {
     lyr_ditches: 'Rowy melioracyjne: priorytet retencji',
     lyr_ditches_d: 'Rowy z BDOT10k z oceną 0–100: użytkowanie terenu, odległość od domów, spadek, długość. Kliknij rów, by zobaczyć składowe.',
     lyr_corridors: 'Miejsce dla rzeki',
-    lyr_corridors_d: 'Udział korytarza 2×100 m wzdłuż głównych cieków wolny od zabudowy i powierzchni uszczelnionych, czyli miejsca, gdzie mogą wrócić meandry i zalewy.',
+    lyr_corridors_d: "Ocena wstępna odcinków do 50 m: budynek do 30 m od osi rzeki oznacza kolor czerwony, niezależnie od udziału wolnego terenu. Kliknij, aby zobaczyć odległość i reguły oceny.",
     lyr_buildings: 'Budynki w korytarzach rzek',
     lyr_buildings_d: 'Budynki BDOT10k do 100 m od głównych cieków.',
     lyr_weirs: 'Jazy i zapory',
@@ -361,9 +371,9 @@ const STRINGS = {
     pr_high: 'Wysoki: blokować najpierw',
     pr_medium: 'Średni',
     pr_low: 'Niski',
-    room_open: 'Wolny (≥80%)',
-    room_partial: 'Częściowo (50–80%)',
-    room_constrained: 'Ograniczony (<50%)',
+    room_open: "Mniej rozpoznanych ograniczeń",
+    room_partial: "Możliwe ograniczenia",
+    room_constrained: "Silne rozpoznane ograniczenia",
     gauge_low: 'Poniżej SNQ',
     gauge_ok: 'Powyżej SNQ',
 
@@ -374,9 +384,19 @@ const STRINGS = {
     ditch_slope: 'Spadek',
     ditch_length: 'Długość',
     ditch_note: 'To ocena wstępna, nie projekt. Zablokowanie rowu wymaga zgody właściciela, Wód Polskich i pozwolenia wodnoprawnego.',
-    corridor_title: 'Odcinek rzeki (250 m)',
-    corridor_free: 'Wolny korytarz',
-    corridor_built: 'Zabudowa i uszczelnienie',
+    corridor_title: "Odcinek rzeki ({length} m)",
+    corridor_method: 'Jak określamy kolor?',
+    corridor_free: "Teren niezabudowany / nieuszczelniony",
+    corridor_built: "Zabudowa / uszczelnienie",
+    corridor_distance: "Najbliższy budynek w danych",
+    corridor_distance_note: "Najkrótsza odległość od osi tego odcinka rzeki do obrysu budynku; nie od pomierzonego brzegu.",
+    corridor_rule: "Reguła wstępna: czerwony, gdy budynek jest do 30 m od osi rzeki lub co najmniej 50% korytarza 2×100 m jest zabudowane/uszczelnione. Żółty, gdy budynek jest do 100 m lub mniej niż 80% terenu jest niezabudowane/nieuszczelnione. W pozostałych przypadkach zielony. To reguły aplikacji, nie odległości prawne ani ocena wykonalności; dane mogą pomijać przeszkody.",
+    corridor_reason_close_building: "Budynek do 30 m od osi rzeki.",
+    corridor_reason_nearby_building: "Budynek 30–100 m od osi rzeki.",
+    corridor_reason_sealed: "Co najmniej połowa korytarza jest zabudowana lub uszczelniona.",
+    corridor_reason_mixed: "Mniej niż 80% korytarza jest niezabudowane i nieuszczelnione.",
+    corridor_reason_open: "Brak budynku w danych do 100 m i co najmniej 80% terenu niezabudowanego/nieuszczelnionego.",
+    corridor_no_building: "Brak budynku w obszarze danych",
     weir_title: 'Budowla hydrotechniczna',
 
     area: 'Powierzchnia',
@@ -389,7 +409,7 @@ const STRINGS = {
     ditch_density: '{km} km · {density} km/km²',
     high_priority: 'rowów o wysokim priorytecie',
     corridor_room: 'Korytarz głównego cieku',
-    open_km: '{open} z {total} km ma miejsce na meandry',
+    open_km: "{open} z {total} km ma mniej rozpoznanych ograniczeń",
     weirs: 'Jazy i zapory',
     zoom: 'Przybliż zlewnię',
     focus_back: 'Wszystkie zlewnie',
@@ -541,7 +561,7 @@ const STRINGS = {
     tour3_title: 'Rowy osuszają krajobraz',
     tour3_text: 'Rowy melioracyjne odprowadzają deszcz z pól i lasów w ciągu godzin. BDOT10k zawiera {km} km rowów, a na cieniowaniu LiDAR widać ich tu znacznie więcej (fioletowe: wykryte automatycznie, eksperymentalnie). Różowe rowy najlepiej zablokować. Zablokowanie wszystkich {n} rowów o wysokim priorytecie w zlewni Rudawy zatrzymałoby ok. <b>{vol} m³ przy jednym napełnieniu</b>, czyli {h1}–{h2} godz. produkcji zakładu Rudawa, i pozwoliło wodzie wsiąknąć w grunt.',
     tour4_title: 'Miejsce dla rzeki',
-    tour4_text: 'Tam, gdzie rzeka ma jeszcze miejsce, mogą wrócić meandry i podmokłe łąki, które zatrzymają wodę w dolinie. Zielone odcinki mają miejsce, czerwone są ściśnięte zabudową. {open} z {total} km głównego koryta Prądnika wciąż ma miejsce. Widzisz wyschnięty potok albo rów, którego nie ma na mapie? Zgłoś to.',
+    tour4_text: "Renaturyzacja rzek wymaga sprawdzenia warunków na miejscu. Czerwone odcinki oznaczają budynki do 30 m od osi rzeki lub silną zabudowę/uszczelnienie. Zielony oznacza mniej rozpoznanych ograniczeń, a nie pewne miejsce na meandry. {open} z {total} km głównego cieku Prądnika spełnia tę regułę wstępną. Zgłoś brakujące obiekty, aby poprawić mapę.",
 
     about_html: `
       <h3>Dlaczego</h3>
@@ -550,7 +570,7 @@ const STRINGS = {
       <ul>
         <li>Wyznacza trzy zlewnie z otwartych danych i porównuje je z oficjalnym MPHP.</li>
         <li>Ocenia każdy zmapowany rów pod kątem „blokować najpierw”: użytkowanie terenu, odległość od domów, spadek, długość.</li>
-        <li>Mierzy, ile miejsca na meandry i zalewy ma każdy 250-metrowy odcinek rzeki.</li>
+        <li>Wstępnie ocenia bliskość budynków i uszczelnienie terenu na odcinkach do 50 m; nie potwierdza możliwości renaturyzacji.</li>
         <li>Śledzi suszę 2026: wodowskazy i ostrzeżenia IMGW na żywo, 35 lat pomiarów przepływu, bilans wodny ERA5.</li>
         <li>Zbiera obserwacje mieszkańców o rowach, potokach, źródłach i przepustach; zostają w przeglądarce i trafiają do projektu tylko wtedy, gdy je wyślesz.</li>
       </ul>

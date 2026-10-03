@@ -18,7 +18,7 @@ export const LANDCOVER_COLORS = {
 };
 export const PRIORITY_COLORS = { high: '#ff006e', medium: '#fb8500', low: '#ffd60a' };
 export const LIDAR_COLOR = '#7c3aed';
-export const ROOM_COLORS = { open: '#06d6a0', partial: '#ffd166', constrained: '#ef476f' };
+export const ROOM_COLORS = { open: '#06d6a0', partial: '#ffd166', constrained: '#d62828' };
 
 // Fade land cover when zoomed in so ditches on the orthophoto / LiDAR relief stay visible.
 export const landcoverOpacity = (v) => ['interpolate', ['linear'], ['zoom'], 12, v, 15, v * 0.25];
@@ -126,7 +126,7 @@ export async function addLayers(map, gaugesGeojson) {
     paint: {
       'line-color': ['match', ['get', 'room_class'], 'open', ROOM_COLORS.open, 'partial', ROOM_COLORS.partial, ROOM_COLORS.constrained],
       'line-width': ['interpolate', ['linear'], ['zoom'], 9, 5, 14, 22],
-      'line-opacity': 0.75,
+      'line-opacity': 1,
     },
   });
   map.addLayer({
@@ -296,9 +296,14 @@ export function bindPopups(map, { onGauge, onReport }) {
     if (isPicking()) return;
     const p = e.features[0].properties;
     popup.setLngLat(e.lngLat).setHTML(`
-      <h4>${t('corridor_title')}</h4>
+      <h4>${t('corridor_title', { length: fmt(p.length_m, 0) })}</h4>
+      <strong class="corridor-status" style="--c:${ROOM_COLORS[p.room_class]}">${t(`room_${p.room_class}`)}</strong>
+      <p class="pop-note">${t(`corridor_reason_${p.reason}`)}</p>
+      ${row(t('corridor_distance'), p.building_distance_m == null ? t('corridor_no_building') : `${fmt(p.building_distance_m, 1)} m`)}
+      <p class="pop-note">${t('corridor_distance_note')}</p>
       ${row(t('corridor_free'), `${fmt(p.room_pct, 0)}%`)}${bar(p.room_pct, 100, ROOM_COLORS[p.room_class])}
-      ${row(t('corridor_built'), `${fmt(p.built_pct, 0)}%`)}`).addTo(map);
+      ${row(t('corridor_built'), `${fmt(p.built_pct, 0)}%`)}
+      <details class="pop-note"><summary>${t('corridor_method')}</summary>${t('corridor_rule')}</details>`).addTo(map);
   });
 
   map.on('click', 'lidar', (e) => {

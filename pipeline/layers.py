@@ -19,14 +19,12 @@ import numpy as np
 import pandas as pd
 import rasterio
 from shapely.geometry import Point
-from shapely.ops import linemerge, substring, unary_union
+from shapely.ops import unary_union
 
 from bdot import read_layer
 from catchments import fill_codes_by_name
 from config import CATCHMENTS, CRS_METRIC, CRS_WEB, OUT, WATER_INTAKES, WORK
-
-CORRIDOR_HALF_WIDTH = 100.0  # m each side of the channel
-REACH_LENGTH = 250.0  # m
+from corridors import CORRIDOR_HALF_WIDTH, CORRIDOR_COLUMNS, build_corridors
 
 LANDCOVER = {
     # class: (BDOT10k layer, optional RODZAJ filter)
@@ -146,30 +144,6 @@ def score_ditches(ditches, landcover, buildings, slope_at):
     return ditches
 
 
-def build_corridors(main_stems, constraints, catchment_id):
-    merged = linemerge(unary_union(main_stems.geometry))
-    lines = list(getattr(merged, "geoms", [merged]))
-    reaches = []
-    for line in lines:
-        n = max(int(round(line.length / REACH_LENGTH)), 1)
-        step = line.length / n
-        for i in range(n):
-            reaches.append(substring(line, i * step, (i + 1) * step))
-    gdf = gpd.GeoDataFrame({"catchment": [catchment_id] * len(reaches)},
-                           geometry=reaches, crs=CRS_METRIC)
-    buffers = gdf.geometry.buffer(CORRIDOR_HALF_WIDTH, cap_style="flat")
-    idx = constraints.sindex
-    shares = []
-    for buf in buffers:
-        hits = constraints.iloc[idx.query(buf, predicate="intersects")]
-        blocked = unary_union(list(hits.geometry)).intersection(buf).area if len(hits) else 0.0
-        shares.append(blocked / buf.area)
-    gdf["built_pct"] = np.round(np.array(shares) * 100, 1)
-    gdf["room_pct"] = (100 - gdf["built_pct"]).round(1)
-    gdf["room_class"] = pd.cut(gdf["room_pct"], [-1, 50, 80, 101],
-                               labels=["constrained", "partial", "open"]).astype(str)
-    return gdf
-
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
@@ -196,6 +170,7 @@ def main():
 
     print("buildings")
     buildings = read_layer("OT_BUBD_A", ["FOBUD"], mask=area_mask)
+    corridor_building_constraints = buildings.copy()
     buildings = gpd.clip(buildings, union)
 
     print("ditches")
@@ -206,10 +181,10 @@ def main():
 
     print("corridors")
     constraint_classes = landcover[landcover["cls"].isin(SEALED)][["geometry"]]
-    constraints = pd.concat([constraint_classes, buildings[["geometry"]]], ignore_index=True)
+    constraints = pd.concat([constraint_classes, corridor_building_constraints[["geometry"]]], ignore_index=True)
     constraints = gpd.GeoDataFrame(constraints, geometry="geometry", crs=CRS_METRIC)
     corridors = pd.concat(
-        [build_corridors(rivers[(rivers["catchment"] == cid) & rivers["main"]], constraints, cid)
+        [build_corridors(rivers[(rivers["catchment"] == cid) & rivers["main"]], constraints, corridor_building_constraints, cid)
          for cid in CATCHMENTS],
         ignore_index=True,
     )
@@ -289,8 +264,8 @@ def main():
     ditches_out = ditches[ditch_cols].copy()
     ditches_out["geometry"] = ditches_out.geometry.simplify(2)
     write(ditches_out, "ditches.json")
-    write(corridors[["catchment", "built_pct", "room_pct", "room_class", "geometry"]],
-          "corridors.json")
+    write(corridors[CORRIDOR_COLUMNS],
+          "corridors.json", precision=6)
     b = corridor_buildings[["FOBUD", "geometry"]].rename(columns={"FOBUD": "use"})
     b["geometry"] = b.geometry.simplify(1)
     write(b, "buildings.json", precision=6)
