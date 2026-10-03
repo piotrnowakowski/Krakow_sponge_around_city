@@ -70,6 +70,12 @@ The key insight is that **rainfall was about normal, yet the rivers hit record l
 | Room for the river (Prądnik in Kraków) | Ditch score on the LiDAR relief |
 |---|---|
 | ![Corridors](docs/screenshot-corridors.png) | ![Ditch](docs/screenshot-ditch.png) |
+| **Retention scenario: top 60 high-priority Rudawa ditches** | **LiDAR pilot: candidate unmapped ditches (experimental)** |
+| ![Scenario](docs/screenshot-scenario.png) | ![LiDAR pilot](docs/screenshot-lidar.png) |
+| **Citizen reports (fictional examples, labelled EXAMPLE)** | **Story tour, step 1** |
+| ![Reports](docs/screenshot-reports.png) | ![Tour](docs/screenshot-tour.png) |
+
+**Hackathon submission:** [Devpost text](docs/devpost.md) · [demo video script](docs/demo-script.md) (the walkthrough is recorded from the live site with `tools/record-demo.mjs`).
 
 ## How it works
 
