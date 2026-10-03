@@ -4,6 +4,7 @@ import { applyStatic, getLang, setLang, fmt, t } from './i18n.js';
 import { addLayers, bindPopups, createMap, createCatchmentFocus, DATA, OVERLAYS, setBasemap, setOverlay } from './map.js';
 import { renderCatchmentsPanel, renderLayersPanel, renderLegend } from './panels.js';
 import { fetchLiveGauges, fetchLiveWarnings, renderDroughtPanel } from './drought.js';
+import { addReportLayers, initReports, openForm, refreshReportLayer, renderReportsPanel } from './reports.js';
 
 const state = createViewState();
 import { applyView, createViewState } from './views.js';
@@ -12,6 +13,7 @@ const ui = {
   layers: document.getElementById('panel-layers'),
   catchments: document.getElementById('panel-catchments'),
   drought: document.getElementById('panel-drought'),
+  reports: document.getElementById('panel-reports'),
   about: document.getElementById('panel-about'),
   legend: document.getElementById('legend'),
   loading: document.getElementById('loading'),
@@ -90,6 +92,8 @@ function renderAll(map) {
     onZoom: (id) => showCatchment(map, id),
   });
   renderDroughtPanel(ui.drought, app.drought, app.stats, { liveWarnings: app.liveWarnings, focusStation: app.focusStation });
+  renderReportsPanel(ui.reports);
+  if (layersReady) refreshReportLayer();
   ui.about.innerHTML = `<div class="about">${t('about_html')}</div>`;
 }
 
@@ -106,9 +110,11 @@ async function main() {
 
   const initializeLayers = async () => {
     await addLayers(map, gaugeFeatures(drought, live));
+    addReportLayers(map);
     applyView(map, state);
     layersReady = true;
     bindPopups(map, {
+      onReport: (lngLat) => openForm({ lng: lngLat.lng, lat: lngLat.lat, type: 'ditch' }),
       onGauge: (code) => {
         app.focusStation = code;
         renderDroughtPanel(ui.drought, app.drought, app.stats, { liveWarnings: app.liveWarnings, focusStation: code });
@@ -121,6 +127,7 @@ async function main() {
   if (map.isStyleLoaded()) await initializeLayers();
   else map.once('load', initializeLayers);
 
+  initReports({ map, catchments, switchTab, onChange: () => renderReportsPanel(ui.reports) });
   renderAll(map);
   fetchLiveWarnings().then((w) => {
     if (!w) return;

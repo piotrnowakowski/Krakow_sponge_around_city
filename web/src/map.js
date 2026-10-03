@@ -1,5 +1,6 @@
 import maplibregl from 'maplibre-gl';
 import { t, fmt } from './i18n.js';
+import { isPicking } from './reports.js';
 
 // Absolute URL: MapLibre fetches GeoJSON from a web worker, where relative paths break.
 export const DATA = new URL(`${import.meta.env.BASE_URL}data/`, document.baseURI).href;
@@ -239,10 +240,11 @@ const row = (label, value) => `<div class="pop-row"><span>${label}</span><strong
 const bar = (value, max, color) =>
   `<div class="pop-bar"><i style="width:${Math.round((100 * value) / max)}%;background:${color}"></i></div>`;
 
-export function bindPopups(map, { onGauge }) {
+export function bindPopups(map, { onGauge, onReport }) {
   const popup = new maplibregl.Popup({ closeButton: true, maxWidth: '300px' });
 
   map.on('click', 'ditches', (e) => {
+    if (isPicking()) return;
     const p = e.features[0].properties;
     popup.setLngLat(e.lngLat).setHTML(`
       <h4>${t('ditch_title')}</h4>
@@ -251,10 +253,17 @@ export function bindPopups(map, { onGauge }) {
       ${row(t('ditch_houses'), `${fmt(p.dist_building_m, 0)} m`)}${bar(p.s_houses, 30, PRIORITY_COLORS[p.priority])}
       ${row(t('ditch_slope'), `${fmt(p.slope_pct, 1)}%`)}${bar(p.s_flat, 20, PRIORITY_COLORS[p.priority])}
       ${row(t('ditch_length'), `${fmt(p.length_m, 0)} m`)}${bar(p.s_length, 10, PRIORITY_COLORS[p.priority])}
-      <p class="pop-note">${t('ditch_note')}</p>`).addTo(map);
+      <p class="pop-note">${t('ditch_note')}</p>
+      <button type="button" class="btn small pop-report">${t('rep_this_ditch')}</button>`).addTo(map);
+    const lngLat = e.lngLat;
+    popup.getElement().querySelector('.pop-report').addEventListener('click', () => {
+      popup.remove();
+      onReport(lngLat);
+    });
   });
 
   map.on('click', 'corridors', (e) => {
+    if (isPicking()) return;
     const p = e.features[0].properties;
     popup.setLngLat(e.lngLat).setHTML(`
       <h4>${t('corridor_title')}</h4>
@@ -263,10 +272,11 @@ export function bindPopups(map, { onGauge }) {
   });
 
   map.on('click', 'weirs', (e) => {
+    if (isPicking()) return;
     popup.setLngLat(e.lngLat).setHTML(`<h4>${t('weir_title')}</h4><p>${e.features[0].properties.kind}</p>`).addTo(map);
   });
 
-  map.on('click', 'gauges', (e) => onGauge(e.features[0].properties.code));
+  map.on('click', 'gauges', (e) => !isPicking() && onGauge(e.features[0].properties.code));
 
   for (const id of ['ditches', 'corridors', 'weirs', 'gauges']) {
     map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));

@@ -12,7 +12,7 @@ Built for the [OneAquaHealth IEEE Global Hackathon 2026](https://oneaquahealth-i
 
 **Primary track: Resilience Informatics.** The app combines a drought early-warning view (live IMGW gauges and warnings, 35 years of flow records, ERA5 water balance) with retention planning: which ditches to block first and where rivers have room to meander.
 
-It also covers **Data-to-Insight**, because it turns raw national datasets (BDOT10k, DEM, IMGW, ERA5) into a few decisions per catchment. It prepares for **Citizen Science UX**, because the next step is resident reporting of ditches and dry streams in places where official data are missing; Dłubnia, for example, has no IMGW gauge at all.
+It also covers **Data-to-Insight**, because it turns raw national datasets (BDOT10k, DEM, IMGW, ERA5) into a few decisions per catchment, and **Citizen Science UX**: residents can report ditches, streams, springs and culverts as flowing, standing, dry or already blocked, right where official data are missing. Dłubnia, for example, has no IMGW gauge at all.
 
 **One Health link:** low flows mean warmer, less oxygenated water, higher pollutant concentrations, fish kills and risk to drinking-water intakes. These are urban freshwater health problems whose cause lies upstream, outside the city.
 
@@ -56,6 +56,7 @@ The key insight is that **rainfall was about normal, yet the rivers hit record l
 - **Live IMGW gauges and drought warnings** fetched directly in the browser, with 12-month hydrographs against the 1991–2020 range and SNQ/NNQ thresholds.
 - **Year ranking:** mean flow from 1 January to date for every year since 1991, from the verified IMGW archive.
 - **ERA5 climate panel:** cumulative climatic water balance 2026 vs 2025 vs normal, monthly rainfall, and soil moisture anomaly.
+- **Citizen reports:** click the map (or use your phone's location), pick ditch / stream / spring / culvert and flowing / standing water / dry / already blocked, add a date, a note and a photo. Reports are kept in the browser (localStorage; photos are shrunk to a 480 px JPEG thumbnail), shown as their own map layer, and leave the browser only when you choose: **Export GeoJSON** or **Send to project**, which opens a prefilled GitHub issue on this repository with the reports as a table and GeoJSON (photos are attached by hand, since they do not fit in a link). No backend, no API keys. Fictional example reports can be switched on to try it out; they are labelled EXAMPLE and never exported or sent.
 - **Basemaps:** vector map, GUGiK orthophoto and **LiDAR shaded relief**. On the relief, the many ditches missing from BDOT10k are clearly visible.
 - **Official MPHP divides** overlay, protected areas, weirs and dams, and buildings in river corridors.
 - **English and Polish** interface; works on mobile.
@@ -134,7 +135,7 @@ The processed data are committed in `web/public/data`, so the web app runs witho
 
 ## Roadmap
 
-1. **Citizen reports:** photo, GPS and status ("water / dry / flowing") for ditches and streams, filling the Dłubnia gauge gap.
+1. **Citizen reports, phase 2:** a small moderated store (e.g. GitHub issues → GeoJSON in the repo via an Action) so that everyone's reports appear on the map, not only your own.
 2. **LiDAR ditch detection:** automatic mapping of the ditches missing from BDOT10k, using the 1 m GUGiK DEM.
 3. **Groundwater:** PIG-PIB monitoring wells and Copernicus soil-moisture anomaly layers.
 4. **Retention potential:** estimated m³ held per blocked ditch and per restored floodplain.

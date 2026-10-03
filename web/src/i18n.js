@@ -28,7 +28,7 @@ const STRINGS = {
     river_streams: 'Smaller streams',
     tab_catchments: 'Catchments',
     tab_drought: 'Drought 2026',
-    tab_about: 'About & data',
+    tab_about: 'About',
     bm_light: 'Map',
     bm_ortho: 'Orthophoto',
     bm_relief: 'LiDAR relief',
@@ -150,6 +150,64 @@ const STRINGS = {
     catchment: 'Catchment',
     updated: 'Data updated {date}',
 
+    tab_reports: 'Report',
+    rep_fab: 'Report an observation',
+    rep_intro: 'Seen a ditch, stream, spring or culvert? Tell us whether water is flowing, standing or dry. Two of the biggest gaps in this map can only be filled by people on the ground.',
+    rep_why_gauge_t: 'Dłubnia has no gauge',
+    rep_why_gauge: 'IMGW does not measure the Dłubnia at all. Dated "flowing / dry" reports along it and its tributaries are the only low-flow record we can get.',
+    rep_why_ditch_t: 'Ditches missing from the map',
+    rep_why_ditch: 'BDOT10k maps only about 130 km of ditches in the three catchments; the LiDAR relief shows many more. Each reported ditch extends the inventory, and "already blocked" tells us where retention works today.',
+    rep_add: 'Add an observation',
+    rep_my_location: 'Use my location',
+    rep_step1: "Click the map where you saw it, or use your phone's location.",
+    rep_step2: 'Pick the feature and its state, add a date, a note and a photo if you like.',
+    rep_step3: 'Your reports stay in this browser. Send them to the project as a GitHub issue, or download them as GeoJSON.',
+    rep_mine: 'Your reports ({n})',
+    rep_show_layer: 'Show reports on the map',
+    rep_empty: 'No reports yet in this browser.',
+    rep_show: 'Show on map',
+    rep_export: 'Export GeoJSON',
+    rep_send: 'Send to project',
+    rep_send_note: '"Send to project" opens a prefilled public GitHub issue on the project repository (you need a GitHub account, and nothing is sent until you submit it). Photos do not fit in the link; drag them into the issue. Example reports are never exported or sent.',
+    rep_examples_summary: 'Try it with example reports',
+    rep_examples_text: 'Adds three fictional reports, labelled EXAMPLE on the map and in this list, so you can see how the layer works. They are not observations and are never exported or sent.',
+    rep_examples_add: 'Add example reports',
+    rep_examples_remove: 'Remove example reports',
+    rep_example_tag: 'EXAMPLE',
+    example_note_1: 'Fictional example: stream bed dry at the road bridge.',
+    example_note_2: 'Fictional example: ditch not on the map, standing water.',
+    example_note_3: 'Fictional example: spring still flowing.',
+    rep_pick_hint: 'Click the map where you made the observation.',
+    rep_form_title: 'New observation',
+    rep_dlubnia_gap: 'This is in the Dłubnia catchment, which has no IMGW gauge. Your report helps fill that gap.',
+    rep_type: 'What did you see?',
+    rep_type_ditch: 'Ditch',
+    rep_type_stream: 'Stream',
+    rep_type_spring: 'Spring',
+    rep_type_culvert: 'Culvert',
+    rep_status: 'Water',
+    rep_status_flowing: 'Flowing',
+    rep_status_standing: 'Standing water',
+    rep_status_dry: 'Dry',
+    rep_status_blocked: 'Already blocked',
+    rep_date: 'Date',
+    rep_photo: 'Photo (optional)',
+    rep_photo_preview: 'Photo preview',
+    rep_photo_alt: 'Photo of the {type}',
+    rep_photo_fail: 'This photo could not be read. Try a JPEG or PNG.',
+    rep_note: 'Note (optional)',
+    rep_note_ph: 'e.g. about 1 m wide, water 10 cm deep, not on the map',
+    rep_privacy: 'Saved only in this browser until you export or send it. Sent reports become public on GitHub, including the location.',
+    rep_save: 'Save report',
+    rep_saved: 'Report saved in this browser.',
+    rep_quota: 'Browser storage is full. The report was saved without its photo, or not at all; export and delete older reports.',
+    rep_geo_fail: 'Location is not available. Click the map instead.',
+    rep_confirm_delete: 'Delete this report from this browser?',
+    rep_outside: 'outside the three catchments',
+    rep_this_ditch: 'Report on this ditch',
+    cancel: 'Cancel',
+    delete: 'Delete',
+
     about_html: `
       <h3>Why</h3>
       <p>Kraków takes about 97% of its tap water from rivers. Rudawa and Dłubnia are two of them, and in 2026 Rudawa and Prądnik ran at their lowest levels since 1991. Scientists blame lost retention: drained fields and forests, sealed surfaces and straightened channels. A <em>sponge city</em> needs a sponge landscape around it.</p>
@@ -159,9 +217,10 @@ const STRINGS = {
         <li>Scores every mapped drainage ditch for "block it first" potential: land use, distance to houses, slope, length.</li>
         <li>Measures how much room each 250 m river reach has for meanders and floodplains.</li>
         <li>Tracks the 2026 drought: live IMGW gauges and warnings, 35 years of flow records, ERA5 water balance.</li>
+        <li>Collects citizen observations of ditches, streams, springs and culverts, stored in your browser and sent to the project only when you choose.</li>
       </ul>
       <h3>Hackathon track</h3>
-      <p><strong>Resilience Informatics</strong>: drought early warning combined with retention planning. Also <strong>Data-to-Insight</strong> and <strong>Citizen Science UX</strong>, since the next step is resident reporting of ditches and dry streams.</p>
+      <p><strong>Resilience Informatics</strong>: drought early warning combined with retention planning. Also <strong>Data-to-Insight</strong> and <strong>Citizen Science UX</strong>: residents can report ditches, streams, springs and culverts as flowing, standing, dry or already blocked (Report tab).</p>
       <h3>Data sources</h3>
       <ul class="sources">
         <li>BDOT10k topographic database: GUGiK, geoportal.gov.pl (rivers, ditches, land cover, buildings, weirs, protected areas)</li>
@@ -326,6 +385,64 @@ const STRINGS = {
     catchment: 'Zlewnia',
     updated: 'Dane z {date}',
 
+    tab_reports: 'Zgłoś',
+    rep_fab: 'Zgłoś obserwację',
+    rep_intro: 'Widzisz rów, potok, źródło albo przepust? Daj znać, czy woda płynie, stoi, czy jest sucho. Dwie największe luki tej mapy mogą wypełnić tylko ludzie w terenie.',
+    rep_why_gauge_t: 'Dłubnia nie ma wodowskazu',
+    rep_why_gauge: 'IMGW w ogóle nie mierzy Dłubni. Datowane zgłoszenia „płynie / sucho” z niej i jej dopływów to jedyny zapis niżówki, jaki możemy mieć.',
+    rep_why_ditch_t: 'Rowy, których nie ma na mapie',
+    rep_why_ditch: 'BDOT10k zawiera tylko ok. 130 km rowów w trzech zlewniach, a cieniowanie LiDAR pokazuje ich znacznie więcej. Każdy zgłoszony rów uzupełnia inwentaryzację, a „już zablokowany” pokazuje, gdzie retencja działa już dziś.',
+    rep_add: 'Dodaj obserwację',
+    rep_my_location: 'Użyj mojej lokalizacji',
+    rep_step1: 'Kliknij na mapie miejsce obserwacji albo użyj lokalizacji telefonu.',
+    rep_step2: 'Wybierz obiekt i stan wody, dodaj datę, a jeśli chcesz, notatkę i zdjęcie.',
+    rep_step3: 'Zgłoszenia zostają w tej przeglądarce. Wyślij je do projektu jako zgłoszenie na GitHubie albo pobierz jako GeoJSON.',
+    rep_mine: 'Twoje zgłoszenia ({n})',
+    rep_show_layer: 'Pokaż zgłoszenia na mapie',
+    rep_empty: 'Brak zgłoszeń w tej przeglądarce.',
+    rep_show: 'Pokaż na mapie',
+    rep_export: 'Eksportuj GeoJSON',
+    rep_send: 'Wyślij do projektu',
+    rep_send_note: '„Wyślij do projektu” otwiera wypełnione, publiczne zgłoszenie (issue) w repozytorium projektu na GitHubie (potrzebne konto; nic nie zostaje wysłane, dopóki go nie zatwierdzisz). Zdjęcia nie mieszczą się w linku, przeciągnij je do zgłoszenia. Przykładowe zgłoszenia nigdy nie są eksportowane ani wysyłane.',
+    rep_examples_summary: 'Wypróbuj na przykładowych zgłoszeniach',
+    rep_examples_text: 'Dodaje trzy fikcyjne zgłoszenia oznaczone na mapie i na liście jako PRZYKŁAD, żeby pokazać działanie warstwy. To nie są obserwacje i nigdy nie są eksportowane ani wysyłane.',
+    rep_examples_add: 'Dodaj przykładowe zgłoszenia',
+    rep_examples_remove: 'Usuń przykładowe zgłoszenia',
+    rep_example_tag: 'PRZYKŁAD',
+    example_note_1: 'Fikcyjny przykład: suche koryto przy moście drogowym.',
+    example_note_2: 'Fikcyjny przykład: rów, którego nie ma na mapie, stojąca woda.',
+    example_note_3: 'Fikcyjny przykład: źródło nadal bije.',
+    rep_pick_hint: 'Kliknij na mapie miejsce obserwacji.',
+    rep_form_title: 'Nowa obserwacja',
+    rep_dlubnia_gap: 'To zlewnia Dłubni, w której nie ma wodowskazu IMGW. Twoje zgłoszenie pomaga wypełnić tę lukę.',
+    rep_type: 'Co widzisz?',
+    rep_type_ditch: 'Rów',
+    rep_type_stream: 'Potok',
+    rep_type_spring: 'Źródło',
+    rep_type_culvert: 'Przepust',
+    rep_status: 'Woda',
+    rep_status_flowing: 'Płynie',
+    rep_status_standing: 'Stoi',
+    rep_status_dry: 'Sucho',
+    rep_status_blocked: 'Już zablokowany',
+    rep_date: 'Data',
+    rep_photo: 'Zdjęcie (opcjonalnie)',
+    rep_photo_preview: 'Podgląd zdjęcia',
+    rep_photo_alt: 'Zdjęcie: {type}',
+    rep_photo_fail: 'Nie udało się odczytać zdjęcia. Spróbuj pliku JPEG lub PNG.',
+    rep_note: 'Notatka (opcjonalnie)',
+    rep_note_ph: 'np. szerokość ok. 1 m, 10 cm wody, brak na mapie',
+    rep_privacy: 'Zapisane tylko w tej przeglądarce, dopóki go nie wyeksportujesz lub nie wyślesz. Wysłane zgłoszenia, łącznie z lokalizacją, są publiczne na GitHubie.',
+    rep_save: 'Zapisz zgłoszenie',
+    rep_saved: 'Zgłoszenie zapisane w tej przeglądarce.',
+    rep_quota: 'Pamięć przeglądarki jest pełna. Zgłoszenie zapisano bez zdjęcia albo wcale; wyeksportuj i usuń starsze zgłoszenia.',
+    rep_geo_fail: 'Lokalizacja jest niedostępna. Kliknij na mapie.',
+    rep_confirm_delete: 'Usunąć to zgłoszenie z tej przeglądarki?',
+    rep_outside: 'poza trzema zlewniami',
+    rep_this_ditch: 'Zgłoś obserwację tego rowu',
+    cancel: 'Anuluj',
+    delete: 'Usuń',
+
     about_html: `
       <h3>Dlaczego</h3>
       <p>Kraków bierze ok. 97% wody z rzek. Rudawa i Dłubnia są wśród nich, a w 2026 r. Rudawa i Prądnik miały najniższe przepływy od 1991 r. Naukowcy wskazują na utratę retencji: zmeliorowane pola i lasy, zabetonowane powierzchnie i wyprostowane koryta. <em>Miasto-gąbka</em> potrzebuje gąbki wokół siebie.</p>
@@ -335,9 +452,10 @@ const STRINGS = {
         <li>Ocenia każdy zmapowany rów pod kątem „blokować najpierw”: użytkowanie terenu, odległość od domów, spadek, długość.</li>
         <li>Mierzy, ile miejsca na meandry i zalewy ma każdy 250-metrowy odcinek rzeki.</li>
         <li>Śledzi suszę 2026: wodowskazy i ostrzeżenia IMGW na żywo, 35 lat pomiarów przepływu, bilans wodny ERA5.</li>
+        <li>Zbiera obserwacje mieszkańców o rowach, potokach, źródłach i przepustach; zostają w przeglądarce i trafiają do projektu tylko wtedy, gdy je wyślesz.</li>
       </ul>
       <h3>Ścieżka hackathonu</h3>
-      <p><strong>Resilience Informatics</strong>: wczesne ostrzeganie przed suszą połączone z planowaniem retencji. Także <strong>Data-to-Insight</strong> i <strong>Citizen Science UX</strong>, bo kolejnym krokiem są zgłoszenia mieszkańców o rowach i wysychających potokach.</p>
+      <p><strong>Resilience Informatics</strong>: wczesne ostrzeganie przed suszą połączone z planowaniem retencji. Także <strong>Data-to-Insight</strong> i <strong>Citizen Science UX</strong>: mieszkańcy mogą zgłaszać rowy, potoki, źródła i przepusty, w których woda płynie, stoi, jest sucho albo które są już zablokowane (zakładka Zgłoś).</p>
       <h3>Źródła danych</h3>
       <ul class="sources">
         <li>BDOT10k: GUGiK, geoportal.gov.pl (rzeki, rowy, pokrycie terenu, budynki, jazy, obszary chronione)</li>

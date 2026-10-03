@@ -6,3 +6,5 @@ data/work/
 web/node_modules/
 web/dist/
 .DS_Store
+tools/node_modules/
+output/

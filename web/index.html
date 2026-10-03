@@ -33,11 +33,13 @@
           <button role="tab" data-tab="layers" class="active" data-i18n="tab_layers"></button>
           <button role="tab" data-tab="catchments" data-i18n="tab_catchments"></button>
           <button role="tab" data-tab="drought" data-i18n="tab_drought"></button>
+          <button role="tab" data-tab="reports" data-i18n="tab_reports"></button>
           <button role="tab" data-tab="about" data-i18n="tab_about"></button>
         </nav>
         <section class="panel active" id="panel-layers"></section>
         <section class="panel" id="panel-catchments"></section>
         <section class="panel" id="panel-drought"></section>
+        <section class="panel" id="panel-reports"></section>
         <section class="panel" id="panel-about"></section>
       </aside>
 
@@ -50,9 +52,14 @@
         </div>
         <div class="legend" id="legend"></div>
         <div class="focus-bar" id="focus-bar" hidden aria-live="polite"></div>
+        <button type="button" class="report-fab" id="report-fab"><span aria-hidden="true">＋</span> <span data-i18n="rep_fab"></span></button>
+        <div class="pick-bar" id="pick-bar" role="status" hidden></div>
+        <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
         <div class="loading" id="loading" data-i18n="loading"></div>
       </div>
     </main>
+
+    <dialog id="report-dialog" aria-labelledby="rd-title"></dialog>
 
     <script type="module" src="/src/main.js"></script>
   </body>
