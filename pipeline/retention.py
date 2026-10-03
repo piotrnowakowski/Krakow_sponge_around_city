@@ -71,7 +71,8 @@ def main():
         "reference": RUDAWA_PLANT,
         "catchments": summary,
     }
-    (OUT / "retention.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    with open(OUT / "retention.json", "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(json.dumps(out, ensure_ascii=False, indent=1) + "\n")
     for cid, s in summary.items():
         print(f"{cid}: {s['high_count']} high-priority ditches, {s['high_length_km']} km, "
               f"{s['high_volume_m3']:,} m3 per filling (all ditches {s['all_volume_m3']:,} m3)")

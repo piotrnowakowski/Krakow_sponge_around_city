@@ -1,6 +1,6 @@
 import { t, fmt } from './i18n.js';
 import { bindScenario, scenarioHtml } from './scenario.js';
-import { LANDCOVER_COLORS, OVERLAYS, PRIORITY_COLORS, ROOM_COLORS, landcoverOpacity, setOverlay } from './map.js';
+import { LANDCOVER_COLORS, LIDAR_COLOR, OVERLAYS, PRIORITY_COLORS, ROOM_COLORS, landcoverOpacity, setOverlay } from './map.js';
 import { VIEWS, selectView } from './views.js';
 
 const LC_ORDER = ['forest', 'grassland', 'arable', 'orchard', 'water', 'built', 'industrial', 'transport', 'bare'];
@@ -18,6 +18,8 @@ export function legendFor(id) {
       return swatches(LC_ORDER.map((k) => [LANDCOVER_COLORS[k], t(`lc_${k}`)]));
     case 'ditches':
       return swatches(['high', 'medium', 'low'].map((k) => [PRIORITY_COLORS[k], t(`pr_${k}`)]), 'line');
+    case 'lidar':
+      return swatches([[LIDAR_COLOR, t('lidar_legend')], ['#111827', t('lidar_tile')]], 'dash');
     case 'corridors':
       return swatches(['open', 'partial', 'constrained'].map((k) => [ROOM_COLORS[k], t(`room_${k}`)]), 'thick');
     case 'gauges':
@@ -40,7 +42,7 @@ export function renderLayersPanel(el, map, state, onChange) {
     <section class="view-details"><h2>${t(`view_${state.view}`)}</h2>
       <p>${t(`view_${state.view}_hint`)}</p>
       ${manual ? '' : `<p class="view-includes">${t('view_includes')}: ${VIEWS.find((v) => v.id === state.view).layers.map((id) => t(`lyr_${id}`)).join(' · ')}</p>`}
-      ${manual ? '' : ['rivers', 'ditches', 'corridors', 'landcover', 'gauges'].filter((id) => state[id]).map((id) => legendFor(id)).join('')}
+      ${manual ? '' : ['rivers', 'ditches', 'lidar', 'corridors', 'landcover', 'gauges'].filter((id) => state[id]).map((id) => legendFor(id)).join('')}
     </section>` + (manual ? groups
     .map(
       (g) => `
@@ -92,7 +94,7 @@ export function renderLayersPanel(el, map, state, onChange) {
 }
 
 export function renderLegend(el, state) {
-  const parts = ['rivers', 'ditches', 'corridors', 'landcover', 'gauges']
+  const parts = ['rivers', 'ditches', 'lidar', 'corridors', 'landcover', 'gauges']
     .filter((id) => state[id])
     .map((id) => `<div class="legend-block"><h5>${t(`lyr_${id}`)}</h5>${legendFor(id)}</div>`);
   el.innerHTML = parts.join('');

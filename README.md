@@ -53,6 +53,7 @@ The key insight is that **rainfall was about normal, yet the rivers hit record l
 
   This is a transparent screening heuristic, not a hydrological model. Blocking any ditch needs the owner, Wody Polskie and a water-law permit.
 - **Retention potential, a transparent estimate:** every ditch popup shows roughly how much water it would hold if blocked, and each catchment card has a scenario slider, "block the top N high-priority ditches", that adds up the volume, highlights those ditches on the map and compares the total with the Rudawa water treatment plant's daily output. For the Rudawa catchment, blocking all 189 high-priority ditches (40 km) holds about **20,000 m³ per filling, roughly 17–22 hours of the plant's production**. See [Retention estimate](#retention-estimate) for the assumptions.
+- **LiDAR ditch detection, an experimental pilot:** in one 2×2 km tile of drained forest west of Krzeszowice, narrow linear depressions are detected automatically in the 1 m GUGiK LiDAR terrain model, and everything within 10 m of a mapped ditch or river is removed. The result, **12.5 km of candidate unmapped ditches next to 11.4 km of mapped ditches and streams**, is a separate, clearly labelled map layer. See [LiDAR pilot](#lidar-pilot-experimental).
 - **Room for the river:** every 250 m reach of the main stems gets the share of a 2×100 m corridor that is free of buildings and sealed land. It shows where meanders and floodplains could come back, and where the city has closed in on the river.
 - **Live IMGW gauges and drought warnings** fetched directly in the browser, with 12-month hydrographs against the 1991–2020 range and SNQ/NNQ thresholds.
 - **Year ranking:** mean flow from 1 January to date for every year since 1991, from the verified IMGW archive.
@@ -75,6 +76,8 @@ pipeline/                    Python, writes web/public/data/*.json
   validate.py      overlays the result on the official MPHP10k WMS (docs/validation_mphp.png)
   layers.py        land cover, rivers, ditch scores, corridors, buildings, weirs, stats.json
   retention.py     storage estimate per ditch, per-catchment ranking, retention.json
+  lidar_pilot.py   EXPERIMENTAL: candidate unmapped ditches from the 1 m LiDAR DTM, one pilot tile
+  lidar_check.py   contact sheet of 30 random candidates for checking precision by eye
   drought.py       IMGW operational + archive discharge, IMGW warnings, ERA5 via Open-Meteo
   run_all.py       runs everything
 web/                         Vite + MapLibre GL + Chart.js static site
@@ -124,6 +127,24 @@ volume [m³] = length [m] × cross-section [m²] × fill factor
 
 These are small numbers next to a river, and that is the honest point: one blocked ditch is a drop, but there are many more ditches than BDOT10k shows, and the real gain is the water that soaks in and keeps the river flowing in August.
 
+### LiDAR pilot (experimental)
+
+`pipeline/lidar_pilot.py` looks for ditches that BDOT10k does not map, in one 2×2 km tile (EPSG:2180 538000–540000 E, 250000–252000 N; a drained forest in the Rudawa catchment with a dense mapped ditch network on one side and many unmapped linear features on the other):
+
+1. Download the **GUGiK 1 m DTM** (NMT) for the tile plus a 50 m margin from the GUGiK WCS (`DTM_PL-KRON86-NH_TIFF`).
+2. **Black top-hat:** grey closing of the lightly smoothed DTM with a 9 m disc, minus the DTM. This is how far each cell sits below its surroundings, but only for depressions narrower than the disc, so valleys and hollows drop out and narrow channels stand out. Forest ditches here are only 0.1–0.3 m deep in this measure.
+3. **Hysteresis threshold** (cells ≥ 0.10 m deep kept when connected to cells ≥ 0.20 m deep), bridge 1–2 m gaps, drop blobs under 60 m² and blobs wider than 4 m on average (pits, ponds).
+4. **Skeletonise** and trace the skeleton into lines; keep lines of 30 m or more.
+5. **Remove** every part within 10 m of a BDOT10k ditch or river.
+
+![LiDAR pilot: mapped ditches and streams (blue), candidates (orange)](docs/lidar_pilot.jpg)
+
+**How good is it?**
+- **Precision, checked by eye:** `pipeline/lidar_check.py` draws 30 random candidates on the 1 m relief ([contact sheet](docs/lidar_pilot_check.jpg)). 27 of 30 follow a narrow linear depression clearly visible on the relief, 2 follow nothing visible and 1 is unclear. The relief alone cannot tell a ditch from a wheel rut or a drain along a forest road, and several candidates are one of a parallel pair along a forest track. So "a real linear depression" is about 90%; "a real drainage ditch" is lower and unknown until someone checks on the ground, which is what the citizen reports are for.
+- **Recall on the mapped network:** the detector finds 41% of the BDOT10k ditches and streams in the tile (within 5 m). Some mapped ditches are shallow or silted up, and some BDOT10k lines sit a few metres off the channel.
+
+It is a pilot: one tile, parameters tuned by eye, no field validation. Scaling it to the three catchments means about 750 km² of 1 m DTM, which is feasible but has not been done.
+
 ## Run it yourself
 
 ```bash
@@ -148,6 +169,7 @@ The processed data are committed in `web/public/data`, so the web app runs witho
 | Hydrological data and warnings | IMGW-PIB ([danepubliczne.imgw.pl](https://danepubliczne.imgw.pl), [hydro.imgw.pl](https://hydro.imgw.pl)) | discharge, thresholds, warnings |
 | ERA5 reanalysis | Copernicus Climate Change Service, via [Open-Meteo](https://open-meteo.com) (CC BY 4.0) | rainfall, ET₀, soil moisture |
 | Orthophoto and LiDAR shaded relief | GUGiK WMS | basemaps |
+| NMT 1 m LiDAR digital terrain model | GUGiK, [WCS](https://mapy.geoportal.gov.pl/wss/service/PZGIK/NMT/GRID1/WCS/DigitalTerrainModelFormatTIFF), free re-use | LiDAR ditch pilot |
 | Basemap | [OpenFreeMap](https://openfreemap.org), © OpenMapTiles, © OpenStreetMap contributors | basemap |
 | Water treatment plant locations | © OpenStreetMap contributors (ODbL) | map markers |
 | ZUW Rudawa production (22–28 thousand m³/day) | Wodociągi Miasta Krakowa, [technical leaflet](https://wodociagi.krakow.pl/admin/files/Files/foldery_ulotki/WMK-ulotka_schemat_techniczno-organizacyjny_ZUW_Rudawa.pdf) | retention scenario reference |
@@ -163,7 +185,7 @@ The processed data are committed in `web/public/data`, so the web app runs witho
 ## Roadmap
 
 1. **Citizen reports, phase 2:** a small moderated store (e.g. GitHub issues → GeoJSON in the repo via an Action) so that everyone's reports appear on the map, not only your own.
-2. **LiDAR ditch detection:** automatic mapping of the ditches missing from BDOT10k, using the 1 m GUGiK DEM.
+2. **LiDAR ditch detection beyond the pilot:** run the detector over all three catchments, separate forest-road ruts from ditches (road data, orthophoto), and let residents confirm candidates on the ground.
 3. **Groundwater:** PIG-PIB monitoring wells and Copernicus soil-moisture anomaly layers.
 4. **Retention potential, phase 2:** floodplain storage for the "room for the river" reaches, and a groundwater-recharge estimate once soil and well data are in.
 5. **Renaturalisation support:** link corridor reaches to the Wody Polskie Dłubnia renaturalisation concept and to the national renaturalisation programme (KPRWP).

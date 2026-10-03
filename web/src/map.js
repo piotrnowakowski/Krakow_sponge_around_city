@@ -17,6 +17,7 @@ export const LANDCOVER_COLORS = {
   bare: '#e7dccb',
 };
 export const PRIORITY_COLORS = { high: '#ff006e', medium: '#fb8500', low: '#ffd60a' };
+export const LIDAR_COLOR = '#7c3aed';
 export const ROOM_COLORS = { open: '#06d6a0', partial: '#ffd166', constrained: '#ef476f' };
 
 // Fade land cover when zoomed in so ditches on the orthophoto / LiDAR relief stay visible.
@@ -50,6 +51,7 @@ export const OVERLAYS = [
   { group: 'grp_base', id: 'rivers', on: true, layers: ['rivers', 'rivers-main', 'rivers-label'] },
   { group: 'grp_base', id: 'protected', on: false, layers: ['protected-fill', 'protected-line'] },
   { group: 'grp_sponge', id: 'ditches', on: true, layers: ['ditches-casing', 'ditches'] },
+  { group: 'grp_sponge', id: 'lidar', on: false, layers: ['lidar-tile', 'lidar-casing', 'lidar'] },
   { group: 'grp_sponge', id: 'corridors', on: false, layers: ['corridors'] },
   { group: 'grp_sponge', id: 'buildings', on: false, layers: ['buildings'] },
   { group: 'grp_sponge', id: 'weirs', on: false, layers: ['weirs'] },
@@ -90,6 +92,7 @@ export async function addLayers(map, gaugesGeojson) {
     map.addSource(name, geo(name));
   }
   map.addSource('gauges', { type: 'geojson', data: gaugesGeojson });
+  map.addSource('lidar', geo('lidar_candidates'));
 
   map.addLayer({
     id: 'landcover', type: 'fill', source: 'landcover',
@@ -141,6 +144,19 @@ export async function addLayers(map, gaugesGeojson) {
       'line-color': ['match', ['get', 'priority'], 'high', PRIORITY_COLORS.high, 'medium', PRIORITY_COLORS.medium, PRIORITY_COLORS.low],
       'line-width': ['interpolate', ['linear'], ['zoom'], 9, 1.5, 15, 4.5],
     },
+  });
+  const isCandidate = ['==', ['get', 'kind'], 'candidate'];
+  map.addLayer({
+    id: 'lidar-tile', type: 'line', source: 'lidar', filter: ['==', ['get', 'kind'], 'tile'], layout: { visibility: 'none' },
+    paint: { 'line-color': '#111827', 'line-width': 1.5, 'line-dasharray': [4, 3] },
+  });
+  map.addLayer({
+    id: 'lidar-casing', type: 'line', source: 'lidar', filter: isCandidate, layout: { visibility: 'none', 'line-cap': 'round' },
+    paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 2.5, 16, 6], 'line-opacity': 0.85 },
+  });
+  map.addLayer({
+    id: 'lidar', type: 'line', source: 'lidar', filter: isCandidate, layout: { visibility: 'none', 'line-cap': 'round' },
+    paint: { 'line-color': LIDAR_COLOR, 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1.2, 16, 3.5], 'line-dasharray': [2, 1] },
   });
   map.addLayer({
     id: 'catchments-line', type: 'line', source: 'catchments',
@@ -273,6 +289,23 @@ export function bindPopups(map, { onGauge, onReport }) {
       ${row(t('corridor_built'), `${fmt(p.built_pct, 0)}%`)}`).addTo(map);
   });
 
+  map.on('click', 'lidar', (e) => {
+    if (isPicking()) return;
+    const p = e.features[0].properties;
+    popup.setLngLat(e.lngLat).setHTML(`
+      <h4>${t('lidar_title')}</h4>
+      <span class="tag-experimental">${t('experimental')}</span>
+      ${row(t('lidar_length'), `${fmt(p.length_m, 0)} m`)}
+      ${row(t('lidar_depth'), `${fmt(p.depth_mean_m, 2)} m`)}
+      <p class="pop-note">${t('lidar_note')}</p>
+      <button type="button" class="btn small pop-report">${t('rep_this_ditch')}</button>`).addTo(map);
+    const lngLat = e.lngLat;
+    popup.getElement().querySelector('.pop-report').addEventListener('click', () => {
+      popup.remove();
+      onReport(lngLat);
+    });
+  });
+
   map.on('click', 'weirs', (e) => {
     if (isPicking()) return;
     popup.setLngLat(e.lngLat).setHTML(`<h4>${t('weir_title')}</h4><p>${e.features[0].properties.kind}</p>`).addTo(map);
@@ -280,7 +313,7 @@ export function bindPopups(map, { onGauge, onReport }) {
 
   map.on('click', 'gauges', (e) => !isPicking() && onGauge(e.features[0].properties.code));
 
-  for (const id of ['ditches', 'corridors', 'weirs', 'gauges']) {
+  for (const id of ['ditches', 'lidar', 'corridors', 'weirs', 'gauges']) {
     map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
     map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
   }

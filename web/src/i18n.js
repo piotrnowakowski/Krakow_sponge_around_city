@@ -226,6 +226,16 @@ const STRINGS = {
     ditch_storage: 'Storage if blocked',
     ditch_storage_note: 'Per filling, heuristic: length × 1 m² × 0.5. Rank {rank} in its catchment. Also recharges groundwater (not counted).',
 
+    lyr_lidar: 'Candidate unmapped ditches (LiDAR pilot, experimental)',
+    lyr_lidar_d: 'Narrow linear depressions found automatically in the 1 m GUGiK LiDAR terrain model, in one 2×2 km pilot tile in the forest west of Krzeszowice, after removing everything within 10 m of a mapped ditch or river. 12.5 km of candidates next to 11.4 km of mapped ditches and streams. In a check by eye, 27 of 30 random candidates follow a depression visible on the relief; some are probably forest-road ruts rather than ditches.',
+    lidar_title: 'Candidate unmapped ditch',
+    experimental: 'Experimental',
+    lidar_length: 'Length',
+    lidar_depth: 'Mean depth below surroundings',
+    lidar_note: 'Found automatically in the 1 m LiDAR terrain model; not on the BDOT10k map. Not verified: it could also be a wheel rut or a sunken track. If you know the place, report what you see.',
+    lidar_legend: 'Candidate (experimental)',
+    lidar_tile: 'Pilot tile, 2×2 km',
+
     about_html: `
       <h3>Why</h3>
       <p>Kraków takes about 97% of its tap water from rivers. Rudawa and Dłubnia are two of them, and in 2026 Rudawa and Prądnik ran at their lowest levels since 1991. Scientists blame lost retention: drained fields and forests, sealed surfaces and straightened channels. A <em>sponge city</em> needs a sponge landscape around it.</p>
@@ -478,6 +488,16 @@ const STRINGS = {
     ret_source: 'Produkcja zakładu:',
     ditch_storage: 'Retencja po zablokowaniu',
     ditch_storage_note: 'Przy jednym napełnieniu, heurystyka: długość × 1 m² × 0,5. Miejsce {rank} w zlewni. Zasila też wody gruntowe (nieliczone).',
+
+    lyr_lidar: 'Kandydaci na niezmapowane rowy (pilotaż LiDAR, eksperymentalne)',
+    lyr_lidar_d: 'Wąskie liniowe zagłębienia wykryte automatycznie w numerycznym modelu terenu LiDAR 1 m (GUGiK) w jednym pilotażowym kwadracie 2×2 km w lesie na zachód od Krzeszowic, po usunięciu wszystkiego, co leży do 10 m od zmapowanego rowu lub cieku. 12,5 km kandydatów obok 11,4 km zmapowanych rowów i cieków. W kontroli wzrokowej 27 z 30 losowych kandydatów biegnie wzdłuż zagłębienia widocznego na cieniowaniu; część to zapewne koleiny dróg leśnych, a nie rowy.',
+    lidar_title: 'Kandydat na niezmapowany rów',
+    experimental: 'Eksperymentalne',
+    lidar_length: 'Długość',
+    lidar_depth: 'Średnia głębokość względem otoczenia',
+    lidar_note: 'Wykryty automatycznie w modelu terenu LiDAR 1 m; nie ma go w BDOT10k. Niezweryfikowany: może to być też koleina lub wąwóz drogowy. Jeśli znasz to miejsce, zgłoś, co widzisz.',
+    lidar_legend: 'Kandydat (eksperymentalne)',
+    lidar_tile: 'Kwadrat pilotażowy 2×2 km',
 
     about_html: `
       <h3>Dlaczego</h3>

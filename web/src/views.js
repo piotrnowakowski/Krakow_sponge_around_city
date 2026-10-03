@@ -2,7 +2,7 @@ import { OVERLAYS, landcoverOpacity, setOverlay } from './map.js';
 
 export const VIEWS = [
   { id: 'rivers', color: '#1f78b4', layers: ['catchments', 'rivers'] },
-  { id: 'ditches', color: '#d90060', layers: ['catchments', 'rivers', 'ditches'] },
+  { id: 'ditches', color: '#d90060', layers: ['catchments', 'rivers', 'ditches', 'lidar'] },
   { id: 'corridors', color: '#00866a', layers: ['catchments', 'rivers', 'corridors', 'buildings', 'weirs'] },
   { id: 'landcover', color: '#497b43', layers: ['catchments', 'landcover', 'rivers', 'protected'] },
   { id: 'monitoring', color: '#b83b4b', layers: ['catchments', 'rivers', 'gauges', 'intakes'] },
