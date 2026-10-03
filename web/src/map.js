@@ -195,6 +195,43 @@ export function setOverlay(map, overlay, visible) {
   for (const id of overlay.layers) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
 }
 
+// Keep the overview's exact filters, colors and visibility for a reversible focus view.
+export function createCatchmentFocus(map) {
+  let saved = null;
+  const restore = () => {
+    if (!saved) return;
+    for (const layer of saved) {
+      map.setFilter(layer.id, layer.filter ?? null);
+      map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility ?? 'visible');
+      const current = map.getStyle().layers.find((l) => l.id === layer.id);
+      for (const key of Object.keys(current.paint ?? {})) map.setPaintProperty(layer.id, key, layer.paint?.[key] ?? null);
+    }
+    saved = null;
+  };
+  return {
+    clear: restore,
+    select(feature) {
+      restore();
+      const ids = new Set([...OVERLAYS.flatMap((o) => o.layers), 'ortho', 'relief']);
+      saved = structuredClone(map.getStyle().layers.filter((layer) => ids.has(layer.id)));
+      const { id, color } = feature.properties;
+      const visible = new Set(['catchments-fill', 'catchments-line', 'catchments-label', 'landcover', 'rivers', 'rivers-main', 'rivers-label', 'ditches-casing', 'ditches']);
+      for (const layer of saved) {
+        map.setLayoutProperty(layer.id, 'visibility', visible.has(layer.id) ? 'visible' : 'none');
+        if (!visible.has(layer.id)) continue;
+        const selected = ['==', ['get', layer.source === 'catchments' ? 'id' : 'catchment'], id];
+        map.setFilter(layer.id, layer.filter ? ['all', layer.filter, selected] : selected);
+      }
+      map.setPaintProperty('landcover', 'fill-color', '#c6cbd0');
+      map.setPaintProperty('catchments-fill', 'fill-opacity', 0.09);
+      for (const layer of ['rivers', 'rivers-main', 'ditches']) map.setPaintProperty(layer, 'line-color', color);
+      map.setPaintProperty('rivers-label', 'text-color', color);
+      map.setPaintProperty('rivers', 'line-opacity', 0.5);
+      map.setPaintProperty('ditches', 'line-dasharray', [2, 1]);
+    },
+  };
+}
+
 const row = (label, value) => `<div class="pop-row"><span>${label}</span><strong>${value}</strong></div>`;
 const bar = (value, max, color) =>
   `<div class="pop-bar"><i style="width:${Math.round((100 * value) / max)}%;background:${color}"></i></div>`;

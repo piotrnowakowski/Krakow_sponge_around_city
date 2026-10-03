@@ -82,11 +82,13 @@ function lcBar(pct) {
       .join('')}</ul>`;
 }
 
-export function renderCatchmentsPanel(el, stats, { onZoom }) {
+export function renderCatchmentsPanel(el, stats, { onZoom, selected = null }) {
   const totalDitchKm = Object.values(stats).reduce((a, s) => a + s.ditches_km, 0);
   el.innerHTML = `
-    <p class="intro">${t('catch_intro')}</p>
+    <p class="intro">${t(selected ? 'focus_intro' : 'catch_intro')}</p>
+    ${selected ? `<select class="focus-select" aria-label="${t('tab_catchments')}">${Object.entries(stats).map(([id, s]) => `<option value="${id}" ${id === selected ? 'selected' : ''}>${s.name}</option>`).join('')}</select>` : ''}
     ${Object.entries(stats)
+      .filter(([id]) => !selected || id === selected)
       .map(([id, s]) => {
         const room = s.corridor_room_km;
         const roomTotal = (room.open || 0) + (room.partial || 0) + (room.constrained || 0);
@@ -110,7 +112,7 @@ export function renderCatchmentsPanel(el, stats, { onZoom }) {
               .join('')}</div></div>
           <div><span>${t('weirs')}</span><b>${s.weirs}</b></div>
         </div>
-        <button class="btn" data-zoom="${id}">${t('zoom')}</button>
+        <button class="btn" data-zoom="${id}">${t(selected ? 'focus_recenter' : 'zoom')}</button>
       </article>`;
       })
       .join('')}
@@ -119,4 +121,5 @@ export function renderCatchmentsPanel(el, stats, { onZoom }) {
       <p>${t('gap_text', { km: fmt(totalDitchKm, 0) })}</p>
     </aside>`;
   el.querySelectorAll('[data-zoom]').forEach((b) => b.addEventListener('click', () => onZoom(b.dataset.zoom)));
+  el.querySelector('.focus-select')?.addEventListener('change', (e) => onZoom(e.target.value));
 }
