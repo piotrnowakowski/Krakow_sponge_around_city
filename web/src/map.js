@@ -1,7 +1,8 @@
 import maplibregl from 'maplibre-gl';
 import { t, fmt } from './i18n.js';
 
-export const DATA = `${import.meta.env.BASE_URL}data/`;
+// Absolute URL: MapLibre fetches GeoJSON from a web worker, where relative paths break.
+export const DATA = new URL(`${import.meta.env.BASE_URL}data/`, document.baseURI).href;
 
 export const LANDCOVER_COLORS = {
   forest: '#2d6a4f',

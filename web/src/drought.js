@@ -217,7 +217,10 @@ export function renderDroughtPanel(el, drought, catchStats, { liveWarnings, focu
 
   const climateCharts = [];
   const showClimate = (id) => {
-    climateCharts.splice(0).forEach((c) => c.destroy());
+    for (const c of climateCharts.splice(0)) {
+      c.destroy();
+      charts.splice(charts.indexOf(c), 1);
+    }
     const c = drought.climate[id];
     const s = c.summary;
     el.querySelector('#climate-kpis').innerHTML = `
