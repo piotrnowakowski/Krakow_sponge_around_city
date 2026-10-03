@@ -1,0 +1,11 @@
+# Full pipeline (download -> catchments -> layers -> drought)
+geopandas==1.2.0
+pandas==3.0.6
+numpy==2.3.5        # pysheds 0.5 still calls np.in1d, removed in NumPy 2.4
+shapely==2.1.2
+pyogrio==0.13.0
+pyproj==3.8.0
+rasterio==1.5.2
+pysheds==0.5
+requests==2.34.2
+matplotlib          # only for the validation figure

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kraków Sponge: where the city's water starts</title>
+    <meta name="description" content="Mapping drainage ditches, river corridors and the 2026 drought in the Rudawa, Prądnik and Dłubnia catchments that feed Kraków." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="28" height="28"><path d="M16 3C11 10 7 14.5 7 19.5a9 9 0 0 0 18 0C25 14.5 21 10 16 3z" fill="#1f78b4"/><path d="M11 20c1.5 2.5 3.5 3.5 6 3.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        </span>
+        <div>
+          <h1 data-i18n="title"></h1>
+          <p class="tagline" data-i18n="tagline"></p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <div class="lang" role="group" aria-label="Language">
+          <button data-lang="en" type="button">EN</button>
+          <button data-lang="pl" type="button">PL</button>
+        </div>
+        <a class="gh" href="https://github.com/piotrnowakowski/Krakow_sponge_around_city" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <nav class="tabs" role="tablist">
+          <button role="tab" data-tab="layers" class="active" data-i18n="tab_layers"></button>
+          <button role="tab" data-tab="catchments" data-i18n="tab_catchments"></button>
+          <button role="tab" data-tab="drought" data-i18n="tab_drought"></button>
+          <button role="tab" data-tab="about" data-i18n="tab_about"></button>
+        </nav>
+        <section class="panel active" id="panel-layers"></section>
+        <section class="panel" id="panel-catchments"></section>
+        <section class="panel" id="panel-drought"></section>
+        <section class="panel" id="panel-about"></section>
+      </aside>
+
+      <div class="map-wrap">
+        <div id="map"></div>
+        <div class="basemaps" role="group" aria-label="Basemap">
+          <button data-basemap="light" class="active" data-i18n="bm_light"></button>
+          <button data-basemap="ortho" data-i18n="bm_ortho"></button>
+          <button data-basemap="relief" data-i18n="bm_relief"></button>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="loading" id="loading" data-i18n="loading"></div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

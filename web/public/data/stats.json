@@ -1,0 +1,147 @@
+{
+  "rudawa": {
+    "name": "Rudawa",
+    "color": "#1f78b4",
+    "area_km2": 305.0,
+    "validation": {
+      "area_km2": 305.0,
+      "mphp_area_km2": 320.58,
+      "area_diff_pct": -4.9
+    },
+    "landcover_pct": {
+      "arable": 32.7,
+      "bare": 0.0,
+      "built": 12.5,
+      "forest": 30.0,
+      "grassland": 18.9,
+      "industrial": 0.8,
+      "orchard": 3.5,
+      "transport": 1.3,
+      "water": 0.4
+    },
+    "sealed_pct": 14.5,
+    "rivers_km": 289.4,
+    "ditches_km": 86.9,
+    "ditch_density_km_per_km2": 0.28,
+    "ditches_count": 426,
+    "ditches_priority_km": {
+      "high": 40.1,
+      "medium": 32.9,
+      "low": 13.9
+    },
+    "ditch_context_km": {
+      "arable": 15.7,
+      "built": 6.8,
+      "forest": 23.1,
+      "grassland": 36.8,
+      "industrial": 0.8,
+      "orchard": 2.1,
+      "other": 1.3,
+      "transport": 0.4
+    },
+    "main_stem_km": 17.8,
+    "corridor_room_km": {
+      "constrained": 0.8,
+      "open": 14.8,
+      "partial": 2.3
+    },
+    "weirs": 23,
+    "feeds_krakow_tap_water": true
+  },
+  "pradnik": {
+    "name": "Prądnik (Białucha)",
+    "color": "#e66101",
+    "area_km2": 178.4,
+    "validation": {
+      "area_km2": 178.4,
+      "mphp_area_km2": 192.11,
+      "area_diff_pct": -7.1
+    },
+    "landcover_pct": {
+      "arable": 49.1,
+      "bare": 0.0,
+      "built": 14.8,
+      "forest": 16.8,
+      "grassland": 13.2,
+      "industrial": 0.3,
+      "orchard": 4.1,
+      "transport": 1.6,
+      "water": 0.0
+    },
+    "sealed_pct": 16.7,
+    "rivers_km": 121.2,
+    "ditches_km": 11.1,
+    "ditch_density_km_per_km2": 0.06,
+    "ditches_count": 41,
+    "ditches_priority_km": {
+      "high": 2.2,
+      "medium": 4.0,
+      "low": 4.9
+    },
+    "ditch_context_km": {
+      "arable": 3.6,
+      "built": 1.8,
+      "forest": 0.4,
+      "grassland": 2.5,
+      "orchard": 1.0,
+      "other": 0.4,
+      "transport": 1.3
+    },
+    "main_stem_km": 38.5,
+    "corridor_room_km": {
+      "constrained": 2.8,
+      "open": 28.1,
+      "partial": 7.7
+    },
+    "weirs": 16,
+    "feeds_krakow_tap_water": false
+  },
+  "dlubnia": {
+    "name": "Dłubnia",
+    "color": "#7b3294",
+    "area_km2": 272.7,
+    "validation": {
+      "area_km2": 272.7,
+      "mphp_area_km2": 273.13,
+      "area_diff_pct": -0.2
+    },
+    "landcover_pct": {
+      "arable": 62.7,
+      "bare": 0.0,
+      "built": 10.2,
+      "forest": 12.1,
+      "grassland": 9.4,
+      "industrial": 0.4,
+      "orchard": 3.6,
+      "transport": 1.4,
+      "water": 0.2
+    },
+    "sealed_pct": 12.0,
+    "rivers_km": 166.6,
+    "ditches_km": 32.4,
+    "ditch_density_km_per_km2": 0.12,
+    "ditches_count": 141,
+    "ditches_priority_km": {
+      "high": 6.8,
+      "medium": 15.8,
+      "low": 9.8
+    },
+    "ditch_context_km": {
+      "arable": 18.3,
+      "built": 1.8,
+      "forest": 3.4,
+      "grassland": 8.7,
+      "industrial": 0.1,
+      "other": 0.1,
+      "transport": 0.2
+    },
+    "main_stem_km": 56.2,
+    "corridor_room_km": {
+      "constrained": 1.3,
+      "open": 42.1,
+      "partial": 12.8
+    },
+    "weirs": 13,
+    "feeds_krakow_tap_water": true
+  }
+}

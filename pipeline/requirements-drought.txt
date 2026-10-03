@@ -1,0 +1,5 @@
+# Enough to refresh drought.json on its own (used by the daily GitHub Action)
+geopandas==1.2.0
+pandas==3.0.6
+numpy==2.3.5
+requests==2.34.2

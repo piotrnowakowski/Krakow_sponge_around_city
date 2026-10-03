@@ -1,0 +1,11 @@
+{
+"type": "FeatureCollection",
+"name": "intakes",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"xy_coordinate_resolution": 1e-05,
+"features": [
+{ "type": "Feature", "properties": { "name": "ZUW Dłubnia", "river": "Dłubnia", "osm": "way/128666983", "lon": 20.0509, "lat": 50.097 }, "geometry": { "type": "Point", "coordinates": [ 20.0509, 50.097 ] } },
+{ "type": "Feature", "properties": { "name": "ZUW Rudawa", "river": "Rudawa", "osm": "way/288574006", "lon": 19.8723, "lat": 50.0786 }, "geometry": { "type": "Point", "coordinates": [ 19.8723, 50.0786 ] } },
+{ "type": "Feature", "properties": { "name": "Ujęcie Sanka (ZUW Bielany)", "river": "Sanka", "osm": "way/229603364", "lon": 19.8225, "lat": 50.0363 }, "geometry": { "type": "Point", "coordinates": [ 19.8225, 50.0363 ] } }
+]
+}
