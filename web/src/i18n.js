@@ -236,6 +236,28 @@ const STRINGS = {
     lidar_legend: 'Candidate (experimental)',
     lidar_tile: 'Pilot tile, 2×2 km',
 
+    skip: 'Skip to the side panel',
+    tour_btn: 'Story tour',
+    tour_invite_title: 'New here?',
+    tour_invite: 'A 4-step tour explains the map in about a minute.',
+    tour_start: 'Start the tour',
+    tour_dismiss: 'No thanks',
+    tour_back: 'Back',
+    tour_next: 'Next',
+    tour_close: 'Close the tour',
+    tour_step: 'Step {i} of {n}',
+    tour_cta: 'Report an observation',
+    tour_rank_1: 'its lowest January-to-date flow since 1991',
+    tour_rank_n: 'its {ord} lowest January-to-date flow since 1991',
+    tour1_title: 'Rivers at record lows',
+    tour1_text: 'The Prądnik at Ojców has had <b>{p_rank}</b>, with {p_days} days below its mean low flow (SNQ). The Rudawa at Balice, which feeds a Kraków water treatment plant, has had <b>{r_rank}</b> ({r_days} days). Yet rainfall since January is <b>{rain}% of normal</b>. A warm year evaporated more: the water balance is {cwb} mm against {normal} mm in a normal year.',
+    tour2_title: "The city's water starts in the hills",
+    tour2_text: "Three small rivers drain {area} km² of fields, forests and villages north and west of Kraków. The Rudawa and the Dłubnia feed two of the city's water treatment plants. What happens to rain on these hills decides how much water reaches Kraków's rivers and taps.",
+    tour3_title: 'Ditches drain the landscape',
+    tour3_text: 'Drainage ditches move rain off fields and forests within hours. BDOT10k maps {km} km of them; on the LiDAR relief here you can see many more (violet: found automatically, experimental). Pink ditches are the best ones to block. Blocking all {n} high-priority ditches in the Rudawa catchment would hold about <b>{vol} m³ per filling</b>, {h1}–{h2} hours of the Rudawa plant\'s output, and let it soak into the ground.',
+    tour4_title: 'Room for the river',
+    tour4_text: "Where a river still has space, meanders and wet meadows can come back and hold water in the valley. Green reaches have room; red ones are hemmed in by buildings. {open} of {total} km of the Prądnik's main stem still have room. Seen a dry stream or a ditch that is not on the map? Report it.",
+
     about_html: `
       <h3>Why</h3>
       <p>Kraków takes about 97% of its tap water from rivers. Rudawa and Dłubnia are two of them, and in 2026 Rudawa and Prądnik ran at their lowest levels since 1991. Scientists blame lost retention: drained fields and forests, sealed surfaces and straightened channels. A <em>sponge city</em> needs a sponge landscape around it.</p>
@@ -498,6 +520,28 @@ const STRINGS = {
     lidar_note: 'Wykryty automatycznie w modelu terenu LiDAR 1 m; nie ma go w BDOT10k. Niezweryfikowany: może to być też koleina lub wąwóz drogowy. Jeśli znasz to miejsce, zgłoś, co widzisz.',
     lidar_legend: 'Kandydat (eksperymentalne)',
     lidar_tile: 'Kwadrat pilotażowy 2×2 km',
+
+    skip: 'Przejdź do panelu bocznego',
+    tour_btn: 'Opowieść',
+    tour_invite_title: 'Pierwszy raz tutaj?',
+    tour_invite: 'Czterokrokowa opowieść objaśni mapę w około minutę.',
+    tour_start: 'Zacznij',
+    tour_dismiss: 'Nie, dziękuję',
+    tour_back: 'Wstecz',
+    tour_next: 'Dalej',
+    tour_close: 'Zamknij opowieść',
+    tour_step: 'Krok {i} z {n}',
+    tour_cta: 'Zgłoś obserwację',
+    tour_rank_1: 'najniższy od 1991 r. przepływ od stycznia do dziś',
+    tour_rank_n: '{ord} najniższy od 1991 r. przepływ od stycznia do dziś',
+    tour1_title: 'Rzeki na rekordowo niskim poziomie',
+    tour1_text: 'Prądnik w Ojcowie ma <b>{p_rank}</b>, a przez {p_days} dni płynął poniżej średniego niskiego przepływu (SNQ). Rudawa w Balicach, która zasila krakowski zakład uzdatniania wody, ma <b>{r_rank}</b> ({r_days} dni). A przecież opad od stycznia to <b>{rain}% normy</b>. W ciepłym roku więcej wody wyparowało: bilans wodny wynosi {cwb} mm wobec {normal} mm w typowym roku.',
+    tour2_title: 'Woda dla miasta zaczyna się na wzgórzach',
+    tour2_text: 'Trzy małe rzeki odwadniają {area} km² pól, lasów i wsi na północ i zachód od Krakowa. Rudawa i Dłubnia zasilają dwa miejskie zakłady uzdatniania wody. To, co dzieje się z deszczem na tych wzgórzach, decyduje, ile wody dopłynie do krakowskich rzek i kranów.',
+    tour3_title: 'Rowy osuszają krajobraz',
+    tour3_text: 'Rowy melioracyjne odprowadzają deszcz z pól i lasów w ciągu godzin. BDOT10k zawiera {km} km rowów, a na cieniowaniu LiDAR widać ich tu znacznie więcej (fioletowe: wykryte automatycznie, eksperymentalnie). Różowe rowy najlepiej zablokować. Zablokowanie wszystkich {n} rowów o wysokim priorytecie w zlewni Rudawy zatrzymałoby ok. <b>{vol} m³ przy jednym napełnieniu</b>, czyli {h1}–{h2} godz. produkcji zakładu Rudawa, i pozwoliło wodzie wsiąknąć w grunt.',
+    tour4_title: 'Miejsce dla rzeki',
+    tour4_text: 'Tam, gdzie rzeka ma jeszcze miejsce, mogą wrócić meandry i podmokłe łąki, które zatrzymają wodę w dolinie. Zielone odcinki mają miejsce, czerwone są ściśnięte zabudową. {open} z {total} km głównego koryta Prądnika wciąż ma miejsce. Widzisz wyschnięty potok albo rów, którego nie ma na mapie? Zgłoś to.',
 
     about_html: `
       <h3>Dlaczego</h3>

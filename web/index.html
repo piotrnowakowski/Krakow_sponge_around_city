@@ -5,9 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kraków Sponge: where the city's water starts</title>
     <meta name="description" content="Mapping drainage ditches, river corridors and the 2026 drought in the Rudawa, Prądnik and Dłubnia catchments that feed Kraków." />
+    <meta name="theme-color" content="#0b2545" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kraków Sponge" />
+    <meta property="og:title" content="Kraków Sponge: the city's water starts in the hills around it" />
+    <meta property="og:description" content="2026 drought dashboard and retention map for the Rudawa, Prądnik and Dłubnia catchments that feed Kraków's rivers and tap water. Live IMGW gauges, ditch priorities, LiDAR, citizen reports." />
+    <meta property="og:url" content="https://piotrnowakowski.github.io/Krakow_sponge_around_city/" />
+    <meta property="og:image" content="https://piotrnowakowski.github.io/Krakow_sponge_around_city/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Map of the Rudawa, Prądnik and Dłubnia catchments around Kraków with drought statistics" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Kraków Sponge: the city's water starts in the hills around it" />
+    <meta name="twitter:description" content="2026 drought dashboard and retention map for the rivers that feed Kraków." />
+    <meta name="twitter:image" content="https://piotrnowakowski.github.io/Krakow_sponge_around_city/og.png" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>" />
   </head>
   <body>
+    <a class="skip" href="#sidebar" data-i18n="skip"></a>
     <header class="topbar">
       <div class="brand">
         <span class="logo" aria-hidden="true">
@@ -19,7 +34,8 @@
         </div>
       </div>
       <div class="topbar-actions">
-        <div class="lang" role="group" aria-label="Language">
+        <button type="button" class="tour-btn" id="tour-btn"><span aria-hidden="true">▶</span> <span data-i18n="tour_btn"></span></button>
+        <div class="lang" role="group" aria-label="Language / Język">
           <button data-lang="en" type="button">EN</button>
           <button data-lang="pl" type="button">PL</button>
         </div>
@@ -28,24 +44,24 @@
     </header>
 
     <main class="layout">
-      <aside class="sidebar">
+      <aside class="sidebar" id="sidebar" tabindex="-1">
         <nav class="tabs" role="tablist">
-          <button role="tab" data-tab="layers" class="active" data-i18n="tab_layers"></button>
-          <button role="tab" data-tab="catchments" data-i18n="tab_catchments"></button>
-          <button role="tab" data-tab="drought" data-i18n="tab_drought"></button>
-          <button role="tab" data-tab="reports" data-i18n="tab_reports"></button>
-          <button role="tab" data-tab="about" data-i18n="tab_about"></button>
+          <button role="tab" id="tab-layers" aria-controls="panel-layers" data-tab="layers" class="active" data-i18n="tab_layers"></button>
+          <button role="tab" id="tab-catchments" aria-controls="panel-catchments" data-tab="catchments" data-i18n="tab_catchments"></button>
+          <button role="tab" id="tab-drought" aria-controls="panel-drought" data-tab="drought" data-i18n="tab_drought"></button>
+          <button role="tab" id="tab-reports" aria-controls="panel-reports" data-tab="reports" data-i18n="tab_reports"></button>
+          <button role="tab" id="tab-about" aria-controls="panel-about" data-tab="about" data-i18n="tab_about"></button>
         </nav>
-        <section class="panel active" id="panel-layers"></section>
-        <section class="panel" id="panel-catchments"></section>
-        <section class="panel" id="panel-drought"></section>
-        <section class="panel" id="panel-reports"></section>
-        <section class="panel" id="panel-about"></section>
+        <section class="panel active" id="panel-layers" role="tabpanel" aria-labelledby="tab-layers" tabindex="0"></section>
+        <section class="panel" id="panel-catchments" role="tabpanel" aria-labelledby="tab-catchments" tabindex="0"></section>
+        <section class="panel" id="panel-drought" role="tabpanel" aria-labelledby="tab-drought" tabindex="0"></section>
+        <section class="panel" id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" tabindex="0"></section>
+        <section class="panel" id="panel-about" role="tabpanel" aria-labelledby="tab-about" tabindex="0"></section>
       </aside>
 
       <div class="map-wrap">
         <div id="map"></div>
-        <div class="basemaps" role="group" aria-label="Basemap">
+        <div class="basemaps" role="group" aria-label="Basemap / Podkład">
           <button data-basemap="light" class="active" data-i18n="bm_light"></button>
           <button data-basemap="ortho" data-i18n="bm_ortho"></button>
           <button data-basemap="relief" data-i18n="bm_relief"></button>
@@ -55,6 +71,8 @@
         <button type="button" class="report-fab" id="report-fab"><span aria-hidden="true">＋</span> <span data-i18n="rep_fab"></span></button>
         <div class="pick-bar" id="pick-bar" role="status" hidden></div>
         <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+        <section class="tour" id="tour" role="dialog" aria-labelledby="tour-title" hidden></section>
+        <div class="tour-invite" id="tour-invite" role="status" hidden></div>
         <div class="loading" id="loading" data-i18n="loading"></div>
       </div>
     </main>

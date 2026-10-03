@@ -6,9 +6,10 @@ import { renderCatchmentsPanel, renderLayersPanel, renderLegend } from './panels
 import { fetchLiveGauges, fetchLiveWarnings, renderDroughtPanel } from './drought.js';
 import { addReportLayers, initReports, openForm, refreshReportLayer, renderReportsPanel } from './reports.js';
 import { addScenarioLayer, loadRetention } from './scenario.js';
+import { initTour, refreshTour } from './tour.js';
 
 const state = createViewState();
-import { applyView, createViewState } from './views.js';
+import { applyView, createViewState, selectView } from './views.js';
 
 const ui = {
   layers: document.getElementById('panel-layers'),
@@ -70,13 +71,29 @@ function bbox(geometry) {
 }
 
 function switchTab(name) {
-  document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tabs button').forEach((b) => {
+    const on = b.dataset.tab === name;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', String(on));
+    b.tabIndex = on ? 0 : -1;
+  });
   document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === `panel-${name}`));
+}
+
+function setBasemapButton(map, which) {
+  document.querySelectorAll('.basemaps button').forEach((x) => {
+    x.classList.toggle('active', x.dataset.basemap === which);
+    x.setAttribute('aria-pressed', String(x.dataset.basemap === which));
+  });
+  if (map.getLayer('ortho')) setBasemap(map, which);
 }
 
 function renderAll(map) {
   applyStatic();
-  document.querySelectorAll('.lang button').forEach((b) => b.classList.toggle('active', b.dataset.lang === getLang()));
+  document.querySelectorAll('.lang button').forEach((b) => {
+    b.classList.toggle('active', b.dataset.lang === getLang());
+    b.setAttribute('aria-pressed', String(b.dataset.lang === getLang()));
+  });
   renderLayersPanel(ui.layers, map, state, () => renderLegend(ui.legend, state));
   renderLegend(ui.legend, state);
   ui.legend.hidden = Boolean(focusedId) || ui.legend.hidden;
@@ -125,6 +142,10 @@ async function main() {
     });
     map.fitBounds(bbox({ coordinates: catchments.features.map((f) => f.geometry.coordinates) }), { padding: 30, duration: 0 });
     map.once('idle', () => (ui.loading.hidden = true));
+    // On phones, start with the attribution collapsed to its (i) button.
+    if (matchMedia('(max-width: 820px)').matches) {
+      document.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
+    }
   };
   if (map.isStyleLoaded()) await initializeLayers();
   else map.once('load', initializeLayers);
@@ -137,22 +158,53 @@ async function main() {
     renderDroughtPanel(ui.drought, app.drought, app.stats, { liveWarnings: w, focusStation: app.focusStation });
   });
 
-  document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
-    if (focusedId && b.dataset.tab !== 'catchments') showCatchment(map, null);
-    switchTab(b.dataset.tab);
-  }));
-  document.querySelectorAll('.basemaps button').forEach((b) =>
+  const tabs = [...document.querySelectorAll('.tabs button')];
+  tabs.forEach((b, i) => {
     b.addEventListener('click', () => {
-      document.querySelectorAll('.basemaps button').forEach((x) => x.classList.toggle('active', x === b));
-      setBasemap(map, b.dataset.basemap);
-    }),
+      if (focusedId && b.dataset.tab !== 'catchments') showCatchment(map, null);
+      switchTab(b.dataset.tab);
+    });
+    // Arrow keys move between tabs (WAI-ARIA tabs pattern).
+    b.addEventListener('keydown', (e) => {
+      const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!d) return;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus();
+      next.click();
+    });
+  });
+  switchTab('layers');
+  setBasemapButton(map, 'light');
+  document.querySelectorAll('.basemaps button').forEach((b) =>
+    b.addEventListener('click', () => setBasemapButton(map, b.dataset.basemap)),
   );
   document.querySelectorAll('.lang button').forEach((b) =>
     b.addEventListener('click', () => {
       setLang(b.dataset.lang);
       renderAll(map);
+      refreshTour();
     }),
   );
+
+  const allBounds = bbox({ coordinates: catchments.features.map((f) => f.geometry.coordinates) });
+  initTour({
+    stats,
+    drought,
+    show: ({ tab, view, fit, center, zoom, basemap }) => {
+      if (!layersReady) return;
+      if (focusedId) showCatchment(map, null);
+      document.querySelectorAll('.maplibregl-popup').forEach((p) => p.remove());
+      if (view) {
+        selectView(map, state, view);
+        renderLayersPanel(ui.layers, map, state, () => renderLegend(ui.legend, state));
+        renderLegend(ui.legend, state);
+      }
+      if (basemap) setBasemapButton(map, basemap);
+      if (tab) switchTab(tab);
+      if (fit === 'all') map.fitBounds(allBounds, { padding: 40, duration: 900 });
+      if (center) map.flyTo({ center, zoom, duration: 1400 });
+    },
+  });
 }
 
 main();

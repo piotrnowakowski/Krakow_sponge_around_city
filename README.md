@@ -61,7 +61,9 @@ The key insight is that **rainfall was about normal, yet the rivers hit record l
 - **Citizen reports:** click the map (or use your phone's location), pick ditch / stream / spring / culvert and flowing / standing water / dry / already blocked, add a date, a note and a photo. Reports are kept in the browser (localStorage; photos are shrunk to a 480 px JPEG thumbnail), shown as their own map layer, and leave the browser only when you choose: **Export GeoJSON** or **Send to project**, which opens a prefilled GitHub issue on this repository with the reports as a table and GeoJSON (photos are attached by hand, since they do not fit in a link). No backend, no API keys. Fictional example reports can be switched on to try it out; they are labelled EXAMPLE and never exported or sent.
 - **Basemaps:** vector map, GUGiK orthophoto and **LiDAR shaded relief**. On the relief, the many ditches missing from BDOT10k are clearly visible.
 - **Official MPHP divides** overlay, protected areas, weirs and dams, and buildings in river corridors.
-- **English and Polish** interface; works on mobile.
+- **Story tour:** a 4-step guided walk-through (drought numbers → catchments → ditches → room for the river), offered on the first visit and available from the "Story tour" button. Its numbers are read from the data files, so they follow the daily refresh.
+- **English and Polish** interface; works on phones and tablets; keyboard navigable (tabs follow the WAI-ARIA pattern, visible focus rings, skip link); an axe-core scan of every tab, the tour and the report form reports no WCAG 2.1 A/AA violations.
+- **Light first load:** the land-cover layer (the largest file, ~1.9 MB gzipped) is only downloaded when a view that shows it is opened.
 
 | Room for the river (Prądnik in Kraków) | Ditch score on the LiDAR relief |
 |---|---|
@@ -158,6 +160,8 @@ cd web && npm install && npm run dev                 # http://localhost:5173
 ```
 
 The processed data are committed in `web/public/data`, so the web app runs without the pipeline. `pipeline/drought.py` can be run on its own to refresh the drought numbers.
+
+Browser checks (Playwright, in `tools/`): `cd tools && npm install`, start the dev server, then e.g. `node check.mjs http://127.0.0.1:5173/` (console errors plus desktop and mobile screenshots), `node test-reports.mjs`, `node test-retention.mjs`, `node test-lidar.mjs`, `node test-tour.mjs`, `node test-a11y.mjs` (axe-core) or `node test-mobile.mjs`. `node make-og.mjs` rebuilds the social preview image `web/public/og.png`.
 
 ## Data sources and licences
 
