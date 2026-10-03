@@ -5,7 +5,9 @@ import { addLayers, bindPopups, createMap, createCatchmentFocus, DATA, OVERLAYS,
 import { renderCatchmentsPanel, renderLayersPanel, renderLegend } from './panels.js';
 import { fetchLiveGauges, fetchLiveWarnings, renderDroughtPanel } from './drought.js';
 
-const state = Object.fromEntries(OVERLAYS.map((o) => [o.id, o.on]));
+const state = createViewState();
+import { applyView, createViewState } from './views.js';
+
 const ui = {
   layers: document.getElementById('panel-layers'),
   catchments: document.getElementById('panel-catchments'),
@@ -104,7 +106,7 @@ async function main() {
 
   const initializeLayers = async () => {
     await addLayers(map, gaugeFeatures(drought, live));
-    for (const o of OVERLAYS) setOverlay(map, o, state[o.id]);
+    applyView(map, state);
     layersReady = true;
     bindPopups(map, {
       onGauge: (code) => {

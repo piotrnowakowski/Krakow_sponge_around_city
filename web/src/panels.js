@@ -1,5 +1,6 @@
 import { t, fmt } from './i18n.js';
 import { LANDCOVER_COLORS, OVERLAYS, PRIORITY_COLORS, ROOM_COLORS, landcoverOpacity, setOverlay } from './map.js';
+import { VIEWS, selectView } from './views.js';
 
 const LC_ORDER = ['forest', 'grassland', 'arable', 'orchard', 'water', 'built', 'industrial', 'transport', 'bare'];
 
@@ -10,6 +11,8 @@ const swatches = (entries, kind = 'box') =>
 
 export function legendFor(id) {
   switch (id) {
+    case 'rivers':
+      return swatches([['#1e40af', t('river_main')], ['#2b6cb0', t('river_streams')]], 'line');
     case 'landcover':
       return swatches(LC_ORDER.map((k) => [LANDCOVER_COLORS[k], t(`lc_${k}`)]));
     case 'ditches':
@@ -25,7 +28,19 @@ export function legendFor(id) {
 
 export function renderLayersPanel(el, map, state, onChange) {
   const groups = [...new Set(OVERLAYS.map((o) => o.group))];
-  el.innerHTML = groups
+  const manual = state.view === 'manual';
+  el.innerHTML = `<p class="intro">${t('views_intro')}</p>
+    <div class="view-grid" role="group" aria-label="${t('tab_layers')}">
+      ${[...VIEWS, { id: 'manual', color: '#596574' }].map((view) => `
+        <button type="button" class="view-card" data-view="${view.id}" aria-pressed="${state.view === view.id}" style="--view-color:${view.color}">
+          <strong>${t(`view_${view.id}`)}</strong><span>${t(`view_${view.id}_d`)}</span>
+        </button>`).join('')}
+    </div>
+    <section class="view-details"><h2>${t(`view_${state.view}`)}</h2>
+      <p>${t(`view_${state.view}_hint`)}</p>
+      ${manual ? '' : `<p class="view-includes">${t('view_includes')}: ${VIEWS.find((v) => v.id === state.view).layers.map((id) => t(`lyr_${id}`)).join(' · ')}</p>`}
+      ${manual ? '' : ['rivers', 'ditches', 'corridors', 'landcover', 'gauges'].filter((id) => state[id]).map((id) => legendFor(id)).join('')}
+    </section>` + (manual ? groups
     .map(
       (g) => `
       <h2 class="group-title">${t(g)}</h2>
@@ -45,13 +60,23 @@ export function renderLayersPanel(el, map, state, onChange) {
         )
         .join('')}`,
     )
-    .join('');
+    .join('') : '');
+
+  el.querySelectorAll('[data-view]').forEach((button) => {
+    button.addEventListener('click', () => {
+      selectView(map, state, button.dataset.view);
+      document.querySelectorAll('.maplibregl-popup').forEach((p) => p.remove());
+      renderLayersPanel(el, map, state, onChange);
+      onChange();
+      el.querySelector(`[data-view="${state.view}"]`).focus({ preventScroll: true });
+    });
+  });
 
   el.querySelectorAll('[data-overlay]').forEach((input) => {
     input.addEventListener('change', () => {
       const o = OVERLAYS.find((x) => x.id === input.dataset.overlay);
       state[o.id] = input.checked;
-      setOverlay(map, o, input.checked);
+      if (map.getLayer(o.layers[0])) setOverlay(map, o, input.checked);
       input.closest('.layer').classList.toggle('on', input.checked);
       onChange();
     });
@@ -60,13 +85,13 @@ export function renderLayersPanel(el, map, state, onChange) {
     input.addEventListener('input', () => {
       const o = OVERLAYS.find((x) => x.id === input.dataset.opacity);
       state[`${o.id}_opacity`] = Number(input.value);
-      map.setPaintProperty(o.opacity.layer, o.opacity.prop, landcoverOpacity(Number(input.value)));
+      if (map.getLayer(o.opacity.layer)) map.setPaintProperty(o.opacity.layer, o.opacity.prop, landcoverOpacity(Number(input.value)));
     });
   });
 }
 
 export function renderLegend(el, state) {
-  const parts = ['ditches', 'corridors', 'landcover', 'gauges']
+  const parts = ['rivers', 'ditches', 'corridors', 'landcover', 'gauges']
     .filter((id) => state[id])
     .map((id) => `<div class="legend-block"><h5>${t(`lyr_${id}`)}</h5>${legendFor(id)}</div>`);
   el.innerHTML = parts.join('');

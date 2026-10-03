@@ -224,6 +224,9 @@ export function createCatchmentFocus(map) {
       }
       map.setPaintProperty('landcover', 'fill-color', '#c6cbd0');
       map.setPaintProperty('catchments-fill', 'fill-opacity', 0.09);
+      map.setPaintProperty('catchments-fill', 'fill-color', color);
+      map.setPaintProperty('catchments-line', 'line-color', color);
+      map.setPaintProperty('catchments-label', 'text-color', color);
       for (const layer of ['rivers', 'rivers-main', 'ditches']) map.setPaintProperty(layer, 'line-color', color);
       map.setPaintProperty('rivers-label', 'text-color', color);
       map.setPaintProperty('rivers', 'line-opacity', 0.5);
