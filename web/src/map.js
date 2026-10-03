@@ -88,7 +88,10 @@ export async function addLayers(map, gaugesGeojson) {
   map.addLayer({ id: 'relief', type: 'raster', source: 'relief', layout: { visibility: 'none' } }, before);
 
   const geo = (name) => ({ type: 'geojson', data: `${DATA}${name}.json` });
-  for (const name of ['catchments', 'landcover', 'rivers', 'ditches', 'corridors', 'buildings', 'weirs', 'protected', 'intakes']) {
+  // Land cover is the largest file (~1.9 MB gzipped): load it only when it is first shown.
+  landcoverRequested = false;
+  map.addSource('landcover', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  for (const name of ['catchments', 'rivers', 'ditches', 'corridors', 'buildings', 'weirs', 'protected', 'intakes']) {
     map.addSource(name, geo(name));
   }
   map.addSource('gauges', { type: 'geojson', data: gaugesGeojson });
@@ -208,7 +211,15 @@ export function setBasemap(map, which) {
   map.setLayoutProperty('relief', 'visibility', which === 'relief' ? 'visible' : 'none');
 }
 
+let landcoverRequested = false;
+export function ensureLandcover(map) {
+  if (landcoverRequested || !map.getSource('landcover')) return;
+  landcoverRequested = true;
+  map.getSource('landcover').setData(`${DATA}landcover.json`);
+}
+
 export function setOverlay(map, overlay, visible) {
+  if (visible && overlay.id === 'landcover') ensureLandcover(map);
   for (const id of overlay.layers) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
 }
 
@@ -239,6 +250,7 @@ export function createCatchmentFocus(map) {
         const selected = ['==', ['get', layer.source === 'catchments' ? 'id' : 'catchment'], id];
         map.setFilter(layer.id, layer.filter ? ['all', layer.filter, selected] : selected);
       }
+      ensureLandcover(map);
       map.setPaintProperty('landcover', 'fill-color', '#c6cbd0');
       map.setPaintProperty('catchments-fill', 'fill-opacity', 0.09);
       map.setPaintProperty('catchments-fill', 'fill-color', color);

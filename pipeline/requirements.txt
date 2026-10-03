@@ -9,3 +9,6 @@ rasterio==1.5.2
 pysheds==0.5
 requests==2.34.2
 matplotlib          # only for the validation figure
+scipy==1.18.1
+scikit-image==0.26.0   # LiDAR pilot
+pillow==12.3.0         # LiDAR pilot QA images

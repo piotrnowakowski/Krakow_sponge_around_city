@@ -53,7 +53,14 @@ def to_web(gdf, precision=5):
 def write(gdf, name, precision=5):
     path = OUT / name
     to_web(gdf, precision).to_file(path, driver="GeoJSON", COORDINATE_PRECISION=precision)
+    compact(path)
     print(f"  {name:22s} {len(gdf):6d} features  {path.stat().st_size / 1e6:5.1f} MB")
+
+
+def compact(path):
+    """Rewrite GDAL's indented GeoJSON without whitespace (same content, ~20% smaller)."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
 def assign_catchment(gdf, catchments):
