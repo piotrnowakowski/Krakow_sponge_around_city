@@ -65,6 +65,7 @@ The key insight is that **rainfall was about normal, yet the rivers hit record l
 - **Basemaps:** vector map, GUGiK orthophoto and **LiDAR shaded relief**. On the relief, the many ditches missing from BDOT10k are clearly visible.
 - **Official MPHP divides** overlay, protected areas, weirs and dams, and buildings in river corridors.
 - **Story tour:** a 5-step guided walk-through (drought numbers → catchments → ditches → room for the river → calculated bends), offered on the first visit and available from the "Story tour" button. Step 5 enables the free-sections filter and zooms to a measured bend concept. Its numbers come from the generated data.
+- **Calculations & literature:** the About panel explains the selected meander's length calculation and the ditch-volume estimate, with numerical assumptions and annotated research references. It is linked from Room for the River and step 5; see the [methods bibliography](docs/calculations-literature.md).
 - **English and Polish** interface; works on phones and tablets; keyboard navigable (tabs follow the WAI-ARIA pattern, visible focus rings, skip link); an axe-core scan of every tab, the tour and the report form reports no WCAG 2.1 A/AA violations.
 - **Light first load:** the land-cover layer (the largest file, ~1.9 MB gzipped) is only downloaded when a view that shows it is opened.
 

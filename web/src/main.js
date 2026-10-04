@@ -5,9 +5,10 @@ import { addLayers, bindPopups, createMap, createCatchmentFocus, DATA, OVERLAYS,
 import { renderCatchmentsPanel, renderLayersPanel, renderLegend } from './panels.js';
 import { fetchLiveGauges, fetchLiveWarnings, renderDroughtPanel } from './drought.js';
 import { addReportLayers, initReports, openForm, refreshReportLayer, renderReportsPanel } from './reports.js';
-import { addScenarioLayer, loadRetention } from './scenario.js';
+import { addScenarioLayer, getRetention, loadRetention } from './scenario.js';
 import { initTour, refreshTour } from './tour.js';
-import { addMeanderLayers, applyCorridorOptions, defaultProposal, fitMeander, hideMeanders, loadMeanders } from './meanders.js';
+import { addMeanderLayers, applyCorridorOptions, defaultProposal, fitMeander, hideMeanders, loadMeanders, selectedProposal } from './meanders.js';
+import { methodsHtml, methodsTitle } from './methods.js';
 
 const state = createViewState();
 import { applyView, createViewState, selectView } from './views.js';
@@ -92,6 +93,21 @@ function setBasemapButton(map, which) {
   if (map.getLayer('ortho')) setBasemap(map, which);
 }
 
+function renderAbout() {
+  const proposal = (selectedProposal(state) || defaultProposal())?.properties;
+  ui.about.innerHTML = `<div class="about"><button type="button" class="btn" data-open-methods>${methodsTitle()}</button>
+    ${t('about_html')}${methodsHtml(proposal, getRetention())}</div>`;
+}
+
+function showMethods(map) {
+  if (focusedId) showCatchment(map, null);
+  renderAbout();
+  switchTab('about');
+  const heading = document.getElementById('calculation-literature');
+  heading.scrollIntoView({ block: 'start' });
+  heading.focus({ preventScroll: true });
+}
+
 function renderAll(map) {
   if (layersReady && !focusedId) applyCorridorOptions(map, state);
   applyStatic();
@@ -117,7 +133,7 @@ function renderAll(map) {
   renderDroughtPanel(ui.drought, app.drought, app.stats, { liveWarnings: app.liveWarnings, focusStation: app.focusStation });
   renderReportsPanel(ui.reports);
   if (layersReady) refreshReportLayer();
-  ui.about.innerHTML = `<div class="about">${t('about_html')}</div>`;
+  renderAbout();
 }
 
 async function main() {
@@ -158,6 +174,9 @@ async function main() {
 
   initReports({ map, catchments, switchTab, onChange: () => renderReportsPanel(ui.reports) });
   renderAll(map);
+  for (const panel of [ui.layers, ui.about]) panel.addEventListener('click', (event) => {
+    if (event.target.closest('[data-open-methods]')) showMethods(map);
+  });
   fetchLiveWarnings().then((w) => {
     if (!w) return;
     app.liveWarnings = w;
@@ -168,6 +187,7 @@ async function main() {
   tabs.forEach((b, i) => {
     b.addEventListener('click', () => {
       if (focusedId && b.dataset.tab !== 'catchments') showCatchment(map, null);
+      if (b.dataset.tab === 'about') renderAbout();
       switchTab(b.dataset.tab);
     });
     // Arrow keys move between tabs (WAI-ARIA tabs pattern).
@@ -196,6 +216,7 @@ async function main() {
   initTour({
     stats,
     drought,
+    onMethods: () => showMethods(map),
     show: ({ tab, view, fit, center, zoom, basemap, meander = false }) => {
       if (!layersReady) return;
       if (focusedId) showCatchment(map, null);

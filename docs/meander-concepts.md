@@ -1,6 +1,8 @@
 # Calculated meander concepts
 
-The Room for the River view has an **Only free sections** filter and a candidate selector. Story step 5 enables the filter and fits the map to one candidate. Dashed blue is the existing mapped centreline, purple is the proposed centreline, and pale green is the screened search area. Choosing another view hides the proposal; returning restores the selection. Clearing the selection restores the corridor overview.
+The Room for the River view has an **Only free sections** filter and a candidate selector. Story step 5 enables the filter and fits the map to one candidate. Dashed blue is the existing mapped centreline, purple is the proposed centreline, and pale green is the search corridor labelled **Area adjusted**. Choosing another view hides the proposal; returning restores the selection. Clearing the selection restores the corridor overview.
+
+The view and step 5 also link to **Calculations & literature** in About: selected-reach figures, formulas, assumptions and an [annotated bibliography](calculations-literature.md).
 
 “Free” means the existing green screening class: no mapped building within 100 m and at least 80% unbuilt/unsealed area within the corridor. It says nothing about ownership or permission to use land.
 

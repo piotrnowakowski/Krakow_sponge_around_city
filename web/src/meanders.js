@@ -1,4 +1,5 @@
 import { t, fmt } from './i18n.js';
+import { methodsTitle } from './methods.js';
 
 let data = { type: 'FeatureCollection', features: [] };
 let loadFailed = false;
@@ -105,6 +106,7 @@ export function corridorOptionsHtml(state) {
       <p class="fine">${t('meander_count', { n: list.length })}</p>`
       : `<p role="status">${meanderEmptyMessage()}</p>`}
     <details class="more"><summary>${t('meander_how')}</summary><p>${t('meander_method')}</p></details>
+    <button type="button" class="btn small method-link" data-open-methods>${methodsTitle()}</button>
     <p class="fine">${t('meander_limit')}</p>
   </section>`;
 }

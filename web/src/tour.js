@@ -3,6 +3,7 @@
 import { t, fmt, ordinal } from './i18n.js';
 import { getRetention } from './scenario.js';
 import { defaultProposal, meanderEmptyMessage } from './meanders.js';
+import { methodsTitle } from './methods.js';
 
 const SEEN = 'ks_tour_seen';
 let ctx = null;
@@ -81,6 +82,7 @@ function render() {
     </div>
     <h2 id="tour-title" tabindex="-1">${s.title}</h2>
     <p>${s.text}</p>
+    ${s.last ? `<button type="button" class="tour-methods" data-tour="methods">${methodsTitle()} →</button>` : ''}
     <div class="tour-dots" aria-hidden="true">${list.map((_, i) => `<i class="${i === step ? 'on' : ''}"></i>`).join('')}</div>
     <div class="tour-nav">
       ${step ? `<button type="button" class="btn ghost" data-tour="back">${t('tour_back')}</button>` : '<span></span>'}
@@ -95,6 +97,10 @@ function render() {
   el.querySelector('[data-tour=report]')?.addEventListener('click', () => {
     closeTour();
     ctx.show({ tab: 'reports' });
+  });
+  el.querySelector('[data-tour=methods]')?.addEventListener('click', () => {
+    closeTour();
+    ctx.onMethods();
   });
   el.querySelector('#tour-title').focus({ preventScroll: true });
 }
