@@ -1,15 +1,17 @@
-import { OVERLAYS, landcoverOpacity, setOverlay } from './map.js';
+import { OVERLAYS, PRIORITY_COLORS, landcoverOpacity, setOverlay } from './map.js';
+import { applyCorridorOptions } from './meanders.js';
 
 export const VIEWS = [
   { id: 'rivers', color: '#1f78b4', layers: ['catchments', 'rivers'] },
   { id: 'ditches', color: '#d90060', layers: ['catchments', 'rivers', 'ditches', 'lidar'] },
+  { id: 'barriers', color: '#8c4cbb', layers: ['catchments', 'rivers', 'ditches', 'barriers'] },
   { id: 'corridors', color: '#00866a', layers: ['catchments', 'rivers', 'corridors', 'buildings', 'weirs'] },
   { id: 'landcover', color: '#497b43', layers: ['catchments', 'landcover', 'rivers', 'protected'] },
   { id: 'monitoring', color: '#b83b4b', layers: ['catchments', 'rivers', 'gauges', 'intakes'] },
 ];
 
 export function createViewState() {
-  return { ...Object.fromEntries(OVERLAYS.map((o) => [o.id, VIEWS[0].layers.includes(o.id)])), view: 'rivers', manual: null };
+  return { ...Object.fromEntries(OVERLAYS.map((o) => [o.id, VIEWS[0].layers.includes(o.id)])), view: 'rivers', manual: null, corridorsFree: false, meanderId: null };
 }
 
 export function applyView(map, state) {
@@ -20,11 +22,14 @@ export function applyView(map, state) {
       landcoverOpacity(state[`${overlay.id}_opacity`] ?? overlay.opacity.value));
   }
   if (!map.getLayer('catchments-line')) return;
+  map.setPaintProperty('ditches', 'line-color', state.view === 'barriers' ? '#a1aab2'
+    : ['match', ['get', 'priority'], 'high', PRIORITY_COLORS.high, 'medium', PRIORITY_COLORS.medium, PRIORITY_COLORS.low]);
   // Boundaries provide context; the chosen topic carries the color.
   const manual = state.view === 'manual';
   map.setPaintProperty('catchments-line', 'line-color', manual ? ['get', 'color'] : '#929ba5');
   map.setPaintProperty('catchments-fill', 'fill-color', manual ? ['get', 'color'] : '#929ba5');
   map.setPaintProperty('catchments-label', 'text-color', manual ? ['get', 'color'] : '#596574');
+  applyCorridorOptions(map, state);
 }
 
 export function selectView(map, state, id) {

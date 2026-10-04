@@ -5,9 +5,12 @@ import { addLayers, bindPopups, createMap, createCatchmentFocus, DATA, OVERLAYS,
 import { renderCatchmentsPanel, renderLayersPanel, renderLegend } from './panels.js';
 import { fetchLiveGauges, fetchLiveWarnings, renderDroughtPanel } from './drought.js';
 import { addReportLayers, initReports, openForm, refreshReportLayer, renderReportsPanel, startPicking } from './reports.js';
-import { addScenarioLayer, loadRetention } from './scenario.js';
+import { addScenarioLayer, getRetention, loadRetention } from './scenario.js';
 import { initTour, refreshTour, startTour, closeTour } from './tour.js';
 import { initMobile } from './mobile.js';
+import { addMeanderLayers, applyCorridorOptions, defaultProposal, fitMeander, hideMeanders, loadMeanders, selectedProposal } from './meanders.js';
+import { methodsHtml, methodsTitle } from './methods.js';
+import { bindBarrierUI } from './ditch-barriers.js';
 
 const state = createViewState();
 import { applyView, createViewState, selectView } from './views.js';
@@ -25,13 +28,18 @@ let app = { stats: null, drought: null, catchments: null, liveWarnings: null, fo
 let focusView;
 let focusedId = null;
 let layersReady = false;
+let barrierUI;
 
 function showCatchment(map, id) {
   if (!layersReady) return;
+  barrierUI?.clear();
   focusedId = id;
   document.body.classList.toggle('catchment-focused', Boolean(id));
   document.querySelectorAll('.maplibregl-popup').forEach((p) => p.remove());
-  if (id) focusView.select(app.catchments.features.find((f) => f.properties.id === id));
+  if (id) {
+    hideMeanders(map);
+    focusView.select(app.catchments.features.find((f) => f.properties.id === id));
+  }
   else focusView.clear();
   renderAll(map);
   ui.catchments.scrollTop = 0;
@@ -72,6 +80,7 @@ function bbox(geometry) {
 }
 
 function switchTab(name) {
+  barrierUI?.clear();
   document.querySelectorAll('.tabs button').forEach((b) => {
     const on = b.dataset.tab === name;
     b.classList.toggle('active', on);
@@ -91,7 +100,23 @@ function setBasemapButton(map, which) {
   if (map.getLayer('ortho')) setBasemap(map, which);
 }
 
+function renderAbout() {
+  const proposal = (selectedProposal(state) || defaultProposal())?.properties;
+  ui.about.innerHTML = `<div class="about"><button type="button" class="btn" data-open-methods>${methodsTitle()}</button>
+    ${t('about_html')}${methodsHtml(proposal, getRetention())}</div>`;
+}
+
+function showMethods(map) {
+  if (focusedId) showCatchment(map, null);
+  renderAbout();
+  switchTab('about');
+  const heading = document.getElementById('calculation-literature');
+  heading.scrollIntoView({ block: 'start' });
+  heading.focus({ preventScroll: true });
+}
+
 function renderAll(map) {
+  if (layersReady && !focusedId) applyCorridorOptions(map, state);
   applyStatic();
   document.querySelectorAll('.lang button').forEach((b) => {
     b.classList.toggle('active', b.dataset.lang === getLang());
@@ -115,7 +140,8 @@ function renderAll(map) {
   renderDroughtPanel(ui.drought, app.drought, app.stats, { liveWarnings: app.liveWarnings, focusStation: app.focusStation });
   renderReportsPanel(ui.reports);
   if (layersReady) refreshReportLayer();
-  ui.about.innerHTML = `<div class="about">${t('about_html')}</div>`;
+  renderAbout();
+  barrierUI?.refresh();
 }
 
 async function main() {
@@ -125,7 +151,7 @@ async function main() {
   focusView = createCatchmentFocus(map);
   window.__map = map; // handy for debugging and demo scripts
 
-  const [stats, drought, catchments] = await Promise.all([getJson('stats'), getJson('drought'), getJson('catchments'), loadRetention(DATA)]);
+  const [stats, drought, catchments] = await Promise.all([getJson('stats'), getJson('drought'), getJson('catchments'), loadRetention(DATA), loadMeanders(DATA)]);
   app = { ...app, stats, drought, catchments };
   const live = await fetchLiveGauges(Object.keys(drought.stations));
 
@@ -133,8 +159,10 @@ async function main() {
     await addLayers(map, gaugeFeatures(drought, live));
     addScenarioLayer(map);
     addReportLayers(map);
+    addMeanderLayers(map);
     applyView(map, state);
     layersReady = true;
+    barrierUI = bindBarrierUI(map, { onMethods: () => showMethods(map) });
     bindPopups(map, {
       onReport: (lngLat) => openForm({ lng: lngLat.lng, lat: lngLat.lat, type: 'ditch' }),
       onGauge: (code) => {
@@ -155,6 +183,9 @@ async function main() {
 
   initReports({ map, catchments, switchTab, onChange: () => renderReportsPanel(ui.reports) });
   renderAll(map);
+  for (const panel of [ui.layers, ui.about]) panel.addEventListener('click', (event) => {
+    if (event.target.closest('[data-open-methods]')) showMethods(map);
+  });
   fetchLiveWarnings().then((w) => {
     if (!w) return;
     app.liveWarnings = w;
@@ -165,6 +196,7 @@ async function main() {
   tabs.forEach((b, i) => {
     b.addEventListener('click', () => {
       if (focusedId && b.dataset.tab !== 'catchments') showCatchment(map, null);
+      if (b.dataset.tab === 'about') renderAbout();
       switchTab(b.dataset.tab);
     });
     // Arrow keys move between tabs (WAI-ARIA tabs pattern).
@@ -194,12 +226,16 @@ async function main() {
   initTour({
     stats,
     drought,
-    show: ({ tab, view, fit, center, zoom, basemap }) => {
+    onMethods: () => showMethods(map),
+    show: ({ tab, view, fit, center, zoom, basemap, meander = false }) => {
       if (!layersReady) return;
       if (focusedId) showCatchment(map, null);
       document.querySelectorAll('.maplibregl-popup').forEach((p) => p.remove());
       if (view) {
+        state.corridorsFree = meander;
+        state.meanderId = meander ? defaultProposal()?.properties.id : null;
         selectView(map, state, view);
+        applyCorridorOptions(map, state);
         renderLayersPanel(ui.layers, map, state, () => renderLegend(ui.legend, state));
         renderLegend(ui.legend, state);
       }
@@ -207,6 +243,7 @@ async function main() {
       if (tab) switchTab(tab);
       if (fit === 'all') map.fitBounds(allBounds, { padding: 40, duration: 900 });
       if (center) map.flyTo({ center, zoom, duration: 1400 });
+      if (meander) fitMeander(map, state, true);
     },
   });
   initMobile({

@@ -1,6 +1,7 @@
 import maplibregl from 'maplibre-gl';
 import { t, fmt } from './i18n.js';
 import { isPicking } from './reports.js';
+import { pondFilter } from './ponding.js';
 
 // Absolute URL: MapLibre fetches GeoJSON from a web worker, where relative paths break.
 export const DATA = new URL(`${import.meta.env.BASE_URL}data/`, document.baseURI).href;
@@ -51,6 +52,7 @@ export const OVERLAYS = [
   { group: 'grp_base', id: 'rivers', on: true, layers: ['rivers', 'rivers-main', 'rivers-label'] },
   { group: 'grp_base', id: 'protected', on: false, layers: ['protected-fill', 'protected-line'] },
   { group: 'grp_sponge', id: 'ditches', on: true, layers: ['ditches-casing', 'ditches'] },
+  { group: 'grp_sponge', id: 'barriers', on: false, layers: ['pond-depth', 'pond-outline', 'pond-patch', 'barrier-upstream', 'barrier-downstream', 'barriers'] },
   { group: 'grp_sponge', id: 'lidar', on: false, layers: ['lidar-tile', 'lidar-casing', 'lidar'] },
   { group: 'grp_sponge', id: 'corridors', on: false, layers: ['corridors'] },
   { group: 'grp_sponge', id: 'buildings', on: false, layers: ['buildings'] },
@@ -91,7 +93,7 @@ export async function addLayers(map, gaugesGeojson) {
   // Land cover is the largest file (~1.9 MB gzipped): load it only when it is first shown.
   landcoverRequested = false;
   map.addSource('landcover', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-  for (const name of ['catchments', 'rivers', 'ditches', 'corridors', 'buildings', 'weirs', 'protected', 'intakes']) {
+  for (const name of ['catchments', 'rivers', 'ditches', 'corridors', 'buildings', 'weirs', 'protected', 'intakes', 'ditch-ponding-sites', 'ditch-barrier-reaches', 'ditch-ponding']) {
     map.addSource(name, geo(name));
   }
   map.addSource('gauges', { type: 'geojson', data: gaugesGeojson });
@@ -183,6 +185,34 @@ export async function addLayers(map, gaugesGeojson) {
     },
   });
 
+  map.addLayer({ id: 'pond-depth', type: 'fill', source: 'ditch-ponding',
+    layout: { visibility: 'none' }, filter: pondFilter('depth'),
+    paint: { 'fill-color': ['match', ['get', 'band'], 'shallow', '#7dd3fc', 'medium', '#2196d2', '#075985'],
+      'fill-opacity': 0.72 },
+  });
+  map.addLayer({ id: 'pond-outline', type: 'line', source: 'ditch-ponding',
+    layout: { visibility: 'none' }, filter: pondFilter('extent'),
+    paint: { 'line-color': '#075985', 'line-width': 2 },
+  });
+  map.addLayer({ id: 'pond-patch', type: 'fill', source: 'ditch-ponding',
+    layout: { visibility: 'none' }, filter: pondFilter('patch'),
+    paint: { 'fill-color': '#8c4cbb', 'fill-opacity': 0.95 },
+  });
+  for (const [role, color] of [['upstream', '#9ba9b5'], ['downstream', '#536575']]) {
+    map.addLayer({
+      id: `barrier-${role}`, type: 'line', source: 'ditch-barrier-reaches',
+      layout: { visibility: 'none', 'line-cap': 'round' },
+      filter: ['==', ['get', 'id'], ''],
+      paint: { 'line-color': color, 'line-width': role === 'upstream' ? 1 : 2,
+        'line-opacity': 0.9, ...(role === 'downstream' ? { 'line-dasharray': [2, 1] } : {}) },
+    });
+  }
+  map.addLayer({ id: 'barriers', type: 'circle', source: 'ditch-ponding-sites',
+    layout: { visibility: 'none' },
+    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 5, 14, 8],
+      'circle-color': '#8c4cbb', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 },
+  });
+
   const font = ['Noto Sans Bold'];
   map.addLayer({
     id: 'rivers-label', type: 'symbol', source: 'rivers', filter: ['all', ['get', 'main'], ['has', 'name']], minzoom: 10.5,
@@ -272,6 +302,7 @@ export function bindPopups(map, { onGauge, onReport }) {
   const popup = new maplibregl.Popup({ closeButton: true, maxWidth: '300px' });
 
   map.on('click', 'ditches', (e) => {
+    if (map.queryRenderedFeatures(e.point, { layers: ['barriers'] }).length) return;
     if (isPicking()) return;
     const p = e.features[0].properties;
     popup.setLngLat(e.lngLat).setHTML(`
