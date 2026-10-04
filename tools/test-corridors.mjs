@@ -16,7 +16,9 @@ try {
     await page.addInitScript(() => localStorage.setItem('ks_tour_seen', '1'));
     await page.goto(url);
     await ready(page);
+    if (name === 'mobile') await page.locator('#mobile-sheet-toggle').click();
     await page.locator('[data-view="corridors"]').click();
+    if (name === 'mobile') await page.locator('#mobile-map').click();
     await page.evaluate(() => window.__map.jumpTo({ center: [19.917186, 50.120351], zoom: 17.5 }));
     await page.waitForTimeout(1200);
     const result = await page.evaluate(() => {

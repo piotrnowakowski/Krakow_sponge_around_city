@@ -6,7 +6,8 @@ import { readFileSync } from 'node:fs';
 const url = process.argv[2] || 'http://127.0.0.1:5291/';
 const axe = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 const browser = await launch();
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+let page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+let violations = 0;
 await page.goto(url, { waitUntil: 'domcontentloaded' });
 await ready(page);
 await page.addScriptTag({ content: axe });
@@ -16,6 +17,7 @@ const scan = async (label) => {
     window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }),
   );
   for (const v of res.violations) {
+    violations++;
     console.log(`[${label}] ${v.impact} ${v.id}: ${v.help} (${v.nodes.length})`);
     for (const n of v.nodes.slice(0, 4)) console.log('    ', n.target.join(' '), '|', (n.failureSummary || '').split('\n')[1]?.trim() || '');
   }
@@ -35,4 +37,21 @@ const box = await page.locator('#map').boundingBox();
 await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 await page.waitForSelector('#report-dialog[open]');
 await scan('report form');
+await page.close();
+page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+await page.goto(url, { waitUntil: 'domcontentloaded' });
+await ready(page);
+await page.addScriptTag({ content: axe });
+await scan('mobile map');
+await page.click('#mobile-more');
+await scan('mobile menu');
+await page.click('[data-mobile-tab=layers]');
+await scan('mobile views');
+await page.click('#mobile-report');
+await scan('mobile location request');
+const mobileBox = await page.locator('#map').boundingBox();
+await page.mouse.click(mobileBox.x + mobileBox.width / 2, mobileBox.y + mobileBox.height / 3);
+await page.waitForSelector('#report-dialog[open]');
+await scan('mobile report form');
 await browser.close();
+if (violations) throw new Error(`${violations} accessibility violations`);

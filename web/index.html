@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Kraków Sponge: where the city's water starts</title>
     <meta name="description" content="Mapping drainage ditches, river corridors and the 2026 drought in the Rudawa, Prądnik and Dłubnia catchments that feed Kraków." />
     <meta name="theme-color" content="#0b2545" />
@@ -45,6 +45,20 @@
 
     <main class="layout">
       <aside class="sidebar" id="sidebar" tabindex="-1">
+        <button type="button" class="mobile-sheet-toggle" id="mobile-sheet-toggle" aria-expanded="false" aria-controls="mobile-sheet-content">
+          <span class="sheet-handle" aria-hidden="true"></span>
+          <span><strong id="mobile-sheet-title" data-i18n="mobile_explore"></strong><small id="mobile-sheet-subtitle" data-i18n="mobile_explore_hint"></small></span>
+          <span class="sheet-chevron" aria-hidden="true">⌃</span>
+        </button>
+        <div id="mobile-sheet-content" class="sheet-content">
+        <div id="mobile-menu" class="mobile-menu">
+          <button type="button" data-mobile-tab="layers" data-i18n="tab_layers"></button>
+          <button type="button" data-mobile-tab="catchments" data-i18n="tab_catchments"></button>
+          <button type="button" data-mobile-tab="drought" data-i18n="tab_drought"></button>
+          <button type="button" data-mobile-tab="reports" data-i18n="mobile_saved_reports"></button>
+          <button type="button" data-mobile-tab="about" data-i18n="tab_about"></button>
+          <button type="button" id="mobile-tour" data-i18n="mobile_story"></button>
+        </div>
         <nav class="tabs" role="tablist">
           <button role="tab" id="tab-layers" aria-controls="panel-layers" data-tab="layers" class="active" data-i18n="tab_layers"></button>
           <button role="tab" id="tab-catchments" aria-controls="panel-catchments" data-tab="catchments" data-i18n="tab_catchments"></button>
@@ -57,10 +71,16 @@
         <section class="panel" id="panel-drought" role="tabpanel" aria-labelledby="tab-drought" tabindex="0"></section>
         <section class="panel" id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" tabindex="0"></section>
         <section class="panel" id="panel-about" role="tabpanel" aria-labelledby="tab-about" tabindex="0"></section>
+        </div>
       </aside>
 
       <div class="map-wrap">
         <div id="map"></div>
+        <label class="mobile-basemap"><span class="sr-only" data-i18n="mobile_basemap"></span><select id="mobile-basemap">
+          <option value="light" data-i18n="bm_light"></option>
+          <option value="ortho" data-i18n="bm_ortho"></option>
+          <option value="relief" data-i18n="bm_relief"></option>
+        </select></label>
         <div class="basemaps" role="group" aria-label="Basemap / Podkład">
           <button data-basemap="light" class="active" data-i18n="bm_light"></button>
           <button data-basemap="ortho" data-i18n="bm_ortho"></button>
@@ -76,6 +96,12 @@
         <div class="loading" id="loading" data-i18n="loading"></div>
       </div>
     </main>
+
+    <nav class="mobile-nav" aria-label="Mobile">
+      <button type="button" id="mobile-map" aria-current="page"><span aria-hidden="true">◫</span><span data-i18n="bm_light"></span></button>
+      <button type="button" id="mobile-report"><span class="mobile-add" aria-hidden="true">＋</span><span data-i18n="tab_reports"></span></button>
+      <button type="button" id="mobile-more"><span aria-hidden="true">•••</span><span data-i18n="mobile_more"></span></button>
+    </nav>
 
     <dialog id="report-dialog" aria-labelledby="rd-title"></dialog>
 

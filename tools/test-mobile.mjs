@@ -13,7 +13,8 @@ for (const [name, viewport] of [['phone', { width: 390, height: 844 }], ['tablet
   await page.goto(`${url}?notour`, { waitUntil: 'domcontentloaded' });
   await ready(page);
   for (const tab of ['layers', 'catchments', 'drought', 'reports', 'about']) {
-    await page.click(`.tabs [data-tab=${tab}]`);
+    await page.click('#mobile-more');
+    await page.click(`[data-mobile-tab=${tab}]`);
     await page.waitForTimeout(700);
     await page.screenshot({ path: `${out}/${name}-${tab}.png` });
   }

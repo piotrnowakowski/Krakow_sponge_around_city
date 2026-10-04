@@ -97,7 +97,7 @@ watch(m, errors);
 await m.goto(url, { waitUntil: 'domcontentloaded' });
 await ready(m);
 await m.screenshot({ path: `${out}/6-mobile.png` });
-await m.click('#report-fab');
+await m.click('#mobile-report');
 const mb = await m.locator('#map').boundingBox();
 await m.mouse.click(mb.x + mb.width / 2, mb.y + mb.height / 2);
 await m.waitForSelector('#report-dialog[open]');

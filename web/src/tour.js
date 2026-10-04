@@ -98,7 +98,7 @@ function goTo(i) {
 export function closeTour() {
   document.getElementById('tour').hidden = true;
   localStorage.setItem(SEEN, '1');
-  document.getElementById('tour-btn')?.focus({ preventScroll: true });
+  document.getElementById(matchMedia('(max-width: 820px)').matches ? 'mobile-more' : 'tour-btn')?.focus({ preventScroll: true });
 }
 
 export function startTour() {
@@ -133,5 +133,5 @@ export function initTour(options) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !document.getElementById('tour').hidden && !document.querySelector('dialog[open]')) closeTour();
   });
-  if (!localStorage.getItem(SEEN) && !new URLSearchParams(location.search).has('notour')) invite();
+  if (!matchMedia('(max-width: 820px)').matches && !localStorage.getItem(SEEN) && !new URLSearchParams(location.search).has('notour')) invite();
 }

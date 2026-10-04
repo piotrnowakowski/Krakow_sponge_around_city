@@ -13,9 +13,14 @@ for (const [name, viewport] of [['desktop', { width: 1440, height: 900 }], ['mob
   watch(page, errors);
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await ready(page);
-  await page.waitForSelector('#tour-invite:not([hidden])');
-  await page.screenshot({ path: `${out}/${name}-0-invite.png` });
-  await page.click('#tour-invite [data-inv=yes]');
+  if (name === 'mobile') {
+    await page.click('#mobile-more');
+    await page.click('#mobile-tour');
+  } else {
+    await page.waitForSelector('#tour-invite:not([hidden])');
+    await page.screenshot({ path: `${out}/${name}-0-invite.png` });
+    await page.click('#tour-invite [data-inv=yes]');
+  }
   for (let i = 1; i <= 4; i++) {
     await page.waitForSelector('#tour:not([hidden])');
     await page.waitForTimeout(i === 3 ? 5000 : 2500);

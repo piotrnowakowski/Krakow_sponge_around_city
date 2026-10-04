@@ -4,9 +4,10 @@ import { applyStatic, getLang, setLang, fmt, t } from './i18n.js';
 import { addLayers, bindPopups, createMap, createCatchmentFocus, DATA, OVERLAYS, setBasemap, setOverlay } from './map.js';
 import { renderCatchmentsPanel, renderLayersPanel, renderLegend } from './panels.js';
 import { fetchLiveGauges, fetchLiveWarnings, renderDroughtPanel } from './drought.js';
-import { addReportLayers, initReports, openForm, refreshReportLayer, renderReportsPanel } from './reports.js';
+import { addReportLayers, initReports, openForm, refreshReportLayer, renderReportsPanel, startPicking } from './reports.js';
 import { addScenarioLayer, loadRetention } from './scenario.js';
-import { initTour, refreshTour } from './tour.js';
+import { initTour, refreshTour, startTour, closeTour } from './tour.js';
+import { initMobile } from './mobile.js';
 
 const state = createViewState();
 import { applyView, createViewState, selectView } from './views.js';
@@ -78,9 +79,11 @@ function switchTab(name) {
     b.tabIndex = on ? 0 : -1;
   });
   document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === `panel-${name}`));
+  document.dispatchEvent(new CustomEvent('app:tab-change', { detail: name }));
 }
 
 function setBasemapButton(map, which) {
+  document.getElementById('mobile-basemap').value = which;
   document.querySelectorAll('.basemaps button').forEach((x) => {
     x.classList.toggle('active', x.dataset.basemap === which);
     x.setAttribute('aria-pressed', String(x.dataset.basemap === which));
@@ -183,6 +186,7 @@ async function main() {
       setLang(b.dataset.lang);
       renderAll(map);
       refreshTour();
+      document.dispatchEvent(new Event('app:language-change'));
     }),
   );
 
@@ -204,6 +208,20 @@ async function main() {
       if (fit === 'all') map.fitBounds(allBounds, { padding: 40, duration: 900 });
       if (center) map.flyTo({ center, zoom, duration: 1400 });
     },
+  });
+  initMobile({
+    map,
+    switchTab: (name) => {
+      if (focusedId && name !== 'catchments') showCatchment(map, null);
+      switchTab(name);
+    },
+    startReport: () => startPicking(),
+    startTour,
+    setBasemap: (which) => setBasemapButton(map, which),
+  });
+  document.addEventListener('app:report-pick', () => {
+    if (!document.getElementById('tour').hidden) closeTour();
+    document.getElementById('tour-invite').hidden = true;
   });
 }
 

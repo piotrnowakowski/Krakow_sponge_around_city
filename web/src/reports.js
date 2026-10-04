@@ -26,6 +26,8 @@ let ctx = null; // { map, catchments, onChange, switchTab }
 let picking = false;
 let pendingType = null;
 let visible = true;
+let locationRequest = 0;
+let pendingDraft = null;
 
 export const isPicking = () => picking;
 export const getReports = () => reports;
@@ -165,45 +167,76 @@ export function initReports(options) {
   ctx.map.on('click', (e) => {
     if (!picking) return;
     stopPicking();
-    openForm({ lng: e.lngLat.lng, lat: e.lngLat.lat, type: pendingType });
+    openForm({ lng: e.lngLat.lng, lat: e.lngLat.lat, type: pendingType, draft: pendingDraft });
   });
-  document.addEventListener('keydown', (e) => e.key === 'Escape' && picking && stopPicking());
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && picking) {
+      e.preventDefault();
+      cancelPicking();
+    }
+  });
   document.getElementById('report-fab').addEventListener('click', () => startPicking());
 }
 
 // ---------- picking a location ----------
 
-export function startPicking(type = null) {
+export function startPicking(type = null, { locate = true, draft = null } = {}) {
+  locationRequest++;
   pendingType = type;
+  pendingDraft = draft;
   picking = true;
+  document.body.classList.add('report-picking');
+  document.dispatchEvent(new Event('app:report-pick'));
   ctx.map.getCanvas().style.cursor = 'crosshair';
   const bar = document.getElementById('pick-bar');
-  bar.innerHTML = `<span>${t('rep_pick_hint')}</span>
+  bar.innerHTML = `<span class="pick-status">${t('rep_pick_hint')}</span>
     <button type="button" class="pick-loc">${t('rep_my_location')}</button>
     <button type="button" class="pick-cancel">${t('cancel')}</button>`;
   bar.hidden = false;
-  bar.querySelector('.pick-cancel').addEventListener('click', stopPicking);
+  bar.querySelector('.pick-cancel').addEventListener('click', cancelPicking);
   bar.querySelector('.pick-loc').addEventListener('click', useMyLocation);
   bar.querySelector('.pick-loc').focus();
+  if (locate) useMyLocation();
 }
 
 function stopPicking() {
+  locationRequest++;
   picking = false;
+  document.body.classList.remove('report-picking');
   ctx.map.getCanvas().style.cursor = '';
   document.getElementById('pick-bar').hidden = true;
+  document.dispatchEvent(new Event('app:report-stop'));
+}
+
+function cancelPicking() {
+  stopPicking();
+  if (pendingDraft) openForm({ ...pendingDraft, draft: pendingDraft });
+  else document.getElementById(matchMedia('(max-width: 820px)').matches ? 'mobile-report' : 'report-fab').focus();
 }
 
 function useMyLocation() {
-  if (!navigator.geolocation) return toast(t('rep_geo_fail'));
+  const request = ++locationRequest;
+  const bar = document.getElementById('pick-bar');
+  const button = bar.querySelector('.pick-loc');
+  const status = bar.querySelector('.pick-status');
+  const fail = (error) => {
+    if (!picking || request !== locationRequest) return;
+    button.disabled = false;
+    status.textContent = t(error?.code === 1 ? 'rep_geo_denied' : error?.code === 3 ? 'rep_geo_timeout' : 'rep_geo_fail');
+  };
+  if (!navigator.geolocation || !window.isSecureContext) return fail();
+  button.disabled = true;
+  status.textContent = t('rep_geo_loading');
   navigator.geolocation.getCurrentPosition(
     (pos) => {
+      if (!picking || request !== locationRequest) return;
       stopPicking();
       const { longitude: lng, latitude: lat } = pos.coords;
       ctx.map.flyTo({ center: [lng, lat], zoom: Math.max(ctx.map.getZoom(), 14) });
-      openForm({ lng, lat, type: pendingType });
+      openForm({ lng, lat, type: pendingType, accuracy: pos.coords.accuracy, draft: pendingDraft });
     },
-    () => toast(t('rep_geo_fail')),
-    { enableHighAccuracy: true, timeout: 15000 },
+    fail,
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 },
   );
 }
 
@@ -230,14 +263,16 @@ const chips = (name, values, checked, color) =>
     )
     .join('');
 
-export function openForm({ lng, lat, type = null }) {
+export function openForm({ lng, lat, type = null, accuracy = null, draft = null }) {
+  stopPicking();
   const dialog = document.getElementById('report-dialog');
   const catchment = catchmentAt(lng, lat);
-  let photo = null;
+  let photo = draft?.photo ?? null;
   dialog.innerHTML = `
     <form method="dialog" class="report-form">
       <h2 id="rd-title">${t('rep_form_title')}</h2>
       <p class="rd-where">📍 ${fmt(lat, 5)}, ${fmt(lng, 5)} · ${esc(catchmentName(catchment))}</p>
+      <div class="rd-location"><span>${t(accuracy == null ? 'rep_location_map' : 'rep_location_browser', { m: fmt(accuracy, 0) })}</span><button type="button" class="btn ghost" data-change-location>${t('rep_change_location')}</button></div>
       ${catchment === 'dlubnia' ? `<p class="rd-gap">${t('rep_dlubnia_gap')}</p>` : ''}
       <fieldset><legend>${t('rep_type')}</legend><div class="chips">${chips('type', REPORT_TYPES, type)}</div></fieldset>
       <fieldset><legend>${t('rep_status')}</legend><div class="chips">${chips('status', REPORT_STATUS, null, STATUS_COLORS)}</div></fieldset>
@@ -258,6 +293,18 @@ export function openForm({ lng, lat, type = null }) {
   const form = dialog.querySelector('form');
   const preview = form.querySelector('.rd-preview');
   const error = form.querySelector('.rd-error');
+  if (draft) {
+    for (const name of ['type', 'status', 'date', 'note']) {
+      if (draft[name]) form.elements.namedItem(name).value = draft[name];
+    }
+    if (photo) { preview.src = photo; preview.hidden = false; }
+  }
+  form.querySelector('[data-change-location]').addEventListener('click', () => {
+    const data = new FormData(form);
+    const savedDraft = { lng, lat, accuracy, photo, ...Object.fromEntries(['type', 'status', 'date', 'note'].map((key) => [key, data.get(key)])) };
+    dialog.close();
+    startPicking(data.get('type'), { locate: false, draft: savedDraft });
+  });
   form.photo.addEventListener('change', async () => {
     const file = form.photo.files[0];
     photo = null;
@@ -434,10 +481,7 @@ export function renderReportsPanel(el) {
   const on = (sel, fn) => el.querySelectorAll(sel).forEach((b) => b.addEventListener('click', () => fn(b)));
   el.querySelector('[data-act=toggle]').addEventListener('change', (e) => setVisible(e.target.checked));
   on('[data-act=add]', () => startPicking());
-  on('[data-act=locate]', () => {
-    pendingType = null;
-    useMyLocation();
-  });
+  on('[data-act=locate]', () => startPicking());
   on('[data-act=export]', () => download(`krakow-sponge-reports-${today()}.geojson`, JSON.stringify(toGeojson(), null, 1)));
   on('[data-act=send]', () => window.open(issueUrl(mine), '_blank', 'noopener'));
   on('[data-act=examples]', () => {
