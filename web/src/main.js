@@ -9,6 +9,7 @@ import { addScenarioLayer, getRetention, loadRetention } from './scenario.js';
 import { initTour, refreshTour } from './tour.js';
 import { addMeanderLayers, applyCorridorOptions, defaultProposal, fitMeander, hideMeanders, loadMeanders, selectedProposal } from './meanders.js';
 import { methodsHtml, methodsTitle } from './methods.js';
+import { bindBarrierUI } from './ditch-barriers.js';
 
 const state = createViewState();
 import { applyView, createViewState, selectView } from './views.js';
@@ -26,9 +27,11 @@ let app = { stats: null, drought: null, catchments: null, liveWarnings: null, fo
 let focusView;
 let focusedId = null;
 let layersReady = false;
+let barrierUI;
 
 function showCatchment(map, id) {
   if (!layersReady) return;
+  barrierUI?.clear();
   focusedId = id;
   document.body.classList.toggle('catchment-focused', Boolean(id));
   document.querySelectorAll('.maplibregl-popup').forEach((p) => p.remove());
@@ -76,6 +79,7 @@ function bbox(geometry) {
 }
 
 function switchTab(name) {
+  barrierUI?.clear();
   document.querySelectorAll('.tabs button').forEach((b) => {
     const on = b.dataset.tab === name;
     b.classList.toggle('active', on);
@@ -134,6 +138,7 @@ function renderAll(map) {
   renderReportsPanel(ui.reports);
   if (layersReady) refreshReportLayer();
   renderAbout();
+  barrierUI?.refresh();
 }
 
 async function main() {
@@ -154,6 +159,7 @@ async function main() {
     addMeanderLayers(map);
     applyView(map, state);
     layersReady = true;
+    barrierUI = bindBarrierUI(map, { onMethods: () => showMethods(map) });
     bindPopups(map, {
       onReport: (lngLat) => openForm({ lng: lngLat.lng, lat: lngLat.lat, type: 'ditch' }),
       onGauge: (code) => {

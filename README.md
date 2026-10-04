@@ -62,6 +62,7 @@ The key insight is that **rainfall was about normal, yet the rivers hit record l
 - **Year ranking:** mean flow from 1 January to date for every year since 1991, from the verified IMGW archive.
 - **ERA5 climate panel:** cumulative climatic water balance 2026 vs 2025 vs normal, monthly rainfall, and soil moisture anomaly.
 - **Citizen reports:** click the map (or use your phone's location), pick ditch / stream / spring / culvert and flowing / standing water / dry / already blocked, add a date, a note and a photo. Reports are kept in the browser (localStorage; photos are shrunk to a 480 px JPEG thumbnail), shown as their own map layer, and leave the browser only when you choose: **Export GeoJSON** or **Send to project**, which opens a prefilled GitHub issue on this repository with the reports as a table and GeoJSON (photos are attached by hand, since they do not fit in a link). No backend, no API keys. Fictional example reports can be switched on to try it out; they are labelled EXAMPLE and never exported or sent.
+- **Ditch patches and ponding:** a separate EN/PL overlay shows six survey targets refined from fifteen coarse candidates using official **1 m GUGiK ground terrain**. Blue polygons show connected standing water around a short filled ditch section, with depth bands, area and added capacity. Fill-height changes redraw the pond; open drainage routes limit its extent. Building clearance is measured from the full water footprint, and existing natural depression capacity is subtracted. See the [method, assumptions and research](docs/ditch-barriers-method.md).
 - **Basemaps:** vector map, GUGiK orthophoto and **LiDAR shaded relief**. On the relief, the many ditches missing from BDOT10k are clearly visible.
 - **Official MPHP divides** overlay, protected areas, weirs and dams, and buildings in river corridors.
 - **Story tour:** a 5-step guided walk-through (drought numbers → catchments → ditches → room for the river → calculated bends), offered on the first visit and available from the "Story tour" button. Step 5 enables the free-sections filter and zooms to a measured bend concept. Its numbers come from the generated data.
@@ -87,6 +88,8 @@ pipeline/                    Python, writes web/public/data/*.json
   catchments.py    DEM -> burned streams -> D8 flow -> catchment labels from MPHP-coded rivers
   validate.py      overlays the result on the official MPHP10k WMS (docs/validation_mphp.png)
   layers.py        land cover, rivers, ditch scores, corridors, buildings, weirs, stats.json
+  ditch_barriers.py  Coarse low-ground / building-clearance candidate screen
+  ditch_ponding.py   Connected standing water from 1 m terrain; open drains limit extent
   retention.py     storage estimate per ditch, per-catchment ranking, retention.json
   lidar_pilot.py   EXPERIMENTAL: candidate unmapped ditches from the 1 m LiDAR DTM, one pilot tile
   lidar_check.py   contact sheet of 30 random candidates for checking precision by eye
@@ -183,7 +186,7 @@ Browser checks (Playwright, in `tools/`): `cd tools && npm install`, start the d
 | Hydrological data and warnings | IMGW-PIB ([danepubliczne.imgw.pl](https://danepubliczne.imgw.pl), [hydro.imgw.pl](https://hydro.imgw.pl)) | discharge, thresholds, warnings |
 | ERA5 reanalysis | Copernicus Climate Change Service, via [Open-Meteo](https://open-meteo.com) (CC BY 4.0) | rainfall, ET₀, soil moisture |
 | Orthophoto and LiDAR shaded relief | GUGiK WMS | basemaps |
-| NMT 1 m LiDAR digital terrain model | GUGiK, [WCS](https://mapy.geoportal.gov.pl/wss/service/PZGIK/NMT/GRID1/WCS/DigitalTerrainModelFormatTIFF), free re-use | LiDAR ditch pilot |
+| NMT 1 m LiDAR digital terrain model | GUGiK, [WCS](https://mapy.geoportal.gov.pl/wss/service/PZGIK/NMT/GRID1/WCS/DigitalTerrainModelFormatTIFF), free re-use | LiDAR ditch pilot and terrain ponding around ditch patches |
 | Basemap | [OpenFreeMap](https://openfreemap.org), © OpenMapTiles, © OpenStreetMap contributors | basemap |
 | Water treatment plant locations | © OpenStreetMap contributors (ODbL) | map markers |
 | ZUW Rudawa production (22–28 thousand m³/day) | Wodociągi Miasta Krakowa, [technical leaflet](https://wodociagi.krakow.pl/admin/files/Files/foldery_ulotki/WMK-ulotka_schemat_techniczno-organizacyjny_ZUW_Rudawa.pdf) | retention scenario reference |

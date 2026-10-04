@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:ditch-barriers": "node --test ../tools/test-ditch-hydraulics.mjs ../tools/test-ponding.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

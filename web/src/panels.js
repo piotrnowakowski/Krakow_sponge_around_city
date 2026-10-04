@@ -19,6 +19,10 @@ export function legendFor(id, state = {}) {
       return swatches(LC_ORDER.map((k) => [LANDCOVER_COLORS[k], t(`lc_${k}`)]));
     case 'ditches':
       return swatches(['high', 'medium', 'low'].map((k) => [PRIORITY_COLORS[k], t(`pr_${k}`)]), 'line');
+    case 'barriers':
+      return swatches([['#8c4cbb', t('barrier_candidate')]], 'dot')
+        + swatches([['#7dd3fc', t('pond_shallow')], ['#2196d2', t('pond_medium')], ['#075985', t('pond_deep')]])
+        + swatches([['#536575', t('barrier_downstream')]], 'line');
     case 'lidar':
       return swatches([[LIDAR_COLOR, t('lidar_legend')], ['#111827', t('lidar_tile')]], 'dash');
     case 'corridors':
@@ -44,7 +48,7 @@ export function renderLayersPanel(el, map, state, onChange) {
     <section class="view-details"><h2>${t(`view_${state.view}`)}</h2>
       <p>${t(`view_${state.view}_hint`)}</p>
       ${manual ? '' : `<p class="view-includes">${t('view_includes')}: ${VIEWS.find((v) => v.id === state.view).layers.map((id) => t(`lyr_${id}`)).join(' · ')}</p>`}
-      ${manual ? '' : ['rivers', 'ditches', 'lidar', 'corridors', 'landcover', 'gauges'].filter((id) => state[id] && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId))).map((id) => legendFor(id, state)).join('')}
+      ${manual ? '' : ['rivers', 'ditches', 'barriers', 'lidar', 'corridors', 'landcover', 'gauges'].filter((id) => state[id] && !(id === 'ditches' && state.view === 'barriers') && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId))).map((id) => legendFor(id, state)).join('')}
     </section>` + (manual ? groups
     .map(
       (g) => `
@@ -103,8 +107,8 @@ export function renderLayersPanel(el, map, state, onChange) {
 }
 
 export function renderLegend(el, state) {
-  const parts = ['rivers', 'ditches', 'lidar', 'corridors', 'landcover', 'gauges']
-    .filter((id) => state[id] && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId)))
+  const parts = ['rivers', 'ditches', 'barriers', 'lidar', 'corridors', 'landcover', 'gauges']
+    .filter((id) => state[id] && !(id === 'ditches' && state.view === 'barriers') && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId)))
     .map((id) => `<div class="legend-block"><h5>${t(`lyr_${id}`)}</h5>${legendFor(id, state)}</div>`);
   el.innerHTML = parts.join('');
   el.hidden = parts.length === 0;

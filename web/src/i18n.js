@@ -1,6 +1,9 @@
 // Minimal EN/PL dictionary. Keys are looked up with t(key, vars).
+import { BARRIER_STRINGS } from './ditch-barrier-i18n.js';
+
 const STRINGS = {
   en: {
+    ...BARRIER_STRINGS.en,
     title: 'Kraków Sponge',
     tagline: "The city's water starts in the hills around it",
     tab_layers: 'Views',
@@ -310,6 +313,7 @@ const STRINGS = {
         <li>Hydrological data: IMGW-PIB (operational discharge, verified 1991–2025 archive, warnings)</li>
         <li>ERA5 reanalysis via Open-Meteo: Copernicus Climate Change Service</li>
         <li>Orthophoto and LiDAR shaded relief: GUGiK geoportal.gov.pl WMS</li>
+        <li>Ground terrain for ditch ponding: GUGiK NMT 1 m WCS, EPSG:2180 / PL-KRON86-NH; capacity follows connected low ground and remaining drainage.</li>
         <li>Basemap: OpenFreeMap © OpenMapTiles, © OpenStreetMap contributors</li>
       </ul>
       <h3>Honest limits</h3>
@@ -317,6 +321,7 @@ const STRINGS = {
     `,
   },
   pl: {
+    ...BARRIER_STRINGS.pl,
     title: 'Gąbka Krakowa',
     tagline: 'Woda dla miasta zaczyna się na wzgórzach wokół niego',
     tab_layers: 'Widoki',
@@ -626,6 +631,7 @@ const STRINGS = {
         <li>Dane hydrologiczne: IMGW-PIB (przepływy operacyjne, archiwum zweryfikowane 1991–2025, ostrzeżenia)</li>
         <li>Reanaliza ERA5 przez Open-Meteo: Copernicus Climate Change Service</li>
         <li>Ortofotomapa i cieniowanie LiDAR: GUGiK, WMS geoportal.gov.pl</li>
+        <li>Teren dla rozlewisk przy rowach: GUGiK NMT 1 m WCS, EPSG:2180 / PL-KRON86-NH; pojemność wynika z połączonych obniżeń i drożnego odwodnienia.</li>
         <li>Podkład: OpenFreeMap © OpenMapTiles, © autorzy OpenStreetMap</li>
       </ul>
       <h3>Ograniczenia</h3>

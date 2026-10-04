@@ -1,0 +1,17 @@
+{
+  "candidate_count": 15,
+  "catchments": {
+    "dlubnia": 3,
+    "pradnik": 3,
+    "rudawa": 9
+  },
+  "screened_ditch_count": 608,
+  "dem_resolution_m": 25.0,
+  "minimum_building_clearance_m": 100,
+  "screening_envelope_m": 10,
+  "minimum_relative_low_m": 0.5,
+  "max_upstream_reach_m": 200,
+  "minimum_separation_m": 200,
+  "junction_tolerance_m": 5,
+  "status": "Alternative field-survey targets, not verified sites or additive storage."
+}
