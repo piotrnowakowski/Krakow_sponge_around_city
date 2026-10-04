@@ -14,7 +14,8 @@ export function initMobile({ map, switchTab, startReport, startTour, setBasemap,
   function update() {
     document.body.classList.toggle('mobile-sheet-open', expanded);
     document.body.classList.toggle('mobile-menu-open', menu);
-    content.inert = media.matches && !expanded;
+    const mapHome = tab === 'layers' && !menu;
+    content.inert = media.matches && !expanded && !mapHome;
     toggle.setAttribute('aria-expanded', String(expanded));
     title.dataset.i18n = !expanded ? 'mobile_explore' : menu ? 'mobile_more' : document.body.classList.contains('barrier-selected') ? 'pond_title' : tab === 'reports' ? 'mobile_saved_reports' : `tab_${tab}`;
     title.textContent = t(title.dataset.i18n);
@@ -42,7 +43,10 @@ export function initMobile({ map, switchTab, startReport, startTour, setBasemap,
   document.getElementById('mobile-report').addEventListener('click', startReport);
   document.getElementById('mobile-tour').addEventListener('click', () => { collapse(); startTour(); });
   document.querySelectorAll('[data-mobile-tab]').forEach((button) => {
-    button.addEventListener('click', () => switchTab(button.dataset.mobileTab));
+    button.addEventListener('click', () => {
+      if (button.dataset.mobileTab === 'layers') document.querySelector('button[data-mode="analyse"]').click();
+      switchTab(button.dataset.mobileTab);
+    });
   });
   document.getElementById('mobile-basemap').addEventListener('change', (event) => setBasemap(event.target.value));
   document.getElementById('mobile-language').addEventListener('change', (event) => document.querySelector(`[data-lang="${event.target.value}"]`).click());
@@ -60,6 +64,7 @@ export function initMobile({ map, switchTab, startReport, startTour, setBasemap,
   document.addEventListener('app:report-stop', update);
   document.addEventListener('app:language-change', update);
   document.addEventListener('app:view-change', update);
+  document.addEventListener('app:mode-change', () => { expanded = false; menu = false; tab = 'layers'; update(); });
   document.addEventListener('app:barrier-change', update);
   document.querySelector('.skip').addEventListener('click', () => {
     if (media.matches) { expanded = true; update(); sidebar.focus(); }

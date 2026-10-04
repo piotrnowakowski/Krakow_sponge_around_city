@@ -37,19 +37,18 @@ export function legendFor(id, state = {}) {
 export function renderLayersPanel(el, map, state, onChange) {
   const groups = [...new Set(OVERLAYS.map((o) => o.group))];
   const manual = state.view === 'manual';
-  el.innerHTML = `<p class="intro">${t('views_intro')}</p>
+  el.innerHTML = `<header class="analysis-heading"><div><span>${t('analysis_label')}</span><h2>${t(`view_${state.view}`)}</h2></div><small>${manual ? t('analysis_advanced') : t('analysis_hint')}</small></header>
     <div class="view-grid" role="group" aria-label="${t('tab_layers')}">
-      ${[...VIEWS, { id: 'manual', color: '#596574' }].map((view) => `
+      ${VIEWS.map((view) => `
         <button type="button" class="view-card" data-view="${view.id}" aria-pressed="${state.view === view.id}" style="--view-color:${view.color}">
-          <strong>${t(`view_${view.id}`)}</strong><span>${t(`view_${view.id}_d`)}</span>
+          <strong>${t(`view_${view.id}`)}</strong>
         </button>`).join('')}
     </div>
-    ${state.corridors ? corridorOptionsHtml(state) : ''}
-    <section class="view-details"><h2>${t(`view_${state.view}`)}</h2>
+    <details class="view-details"><summary>${t('analysis_details')}</summary>
       <p>${t(`view_${state.view}_hint`)}</p>
       ${manual ? '' : `<p class="view-includes">${t('view_includes')}: ${VIEWS.find((v) => v.id === state.view).layers.map((id) => t(`lyr_${id}`)).join(' · ')}</p>`}
       ${manual ? '' : ['rivers', 'ditches', 'barriers', 'lidar', 'corridors', 'landcover', 'gauges'].filter((id) => state[id] && !(id === 'ditches' && state.view === 'barriers') && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId))).map((id) => legendFor(id, state)).join('')}
-    </section>` + (manual ? groups
+    </details>${state.corridors ? corridorOptionsHtml(state) : ''}<details class="advanced-views" ${manual ? 'open' : ''}><summary>${t('analysis_advanced')}</summary><button type="button" class="btn" data-view="manual" aria-pressed="${manual}">${t('view_manual')}</button></details>` + (manual ? groups
     .map(
       (g) => `
       <h2 class="group-title">${t(g)}</h2>
@@ -111,7 +110,7 @@ export function renderLegend(el, state) {
     .filter((id) => state[id] && !(id === 'ditches' && state.view === 'barriers') && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId)))
     .map((id) => `<div class="legend-block"><h5>${t(`lyr_${id}`)}</h5>${legendFor(id, state)}</div>`);
   el.innerHTML = parts.join('');
-  el.hidden = parts.length === 0;
+  el.hidden = state.mode === 'explore' || parts.length === 0;
 }
 
 function lcBar(pct) {

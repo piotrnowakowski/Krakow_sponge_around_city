@@ -11,29 +11,44 @@ export const VIEWS = [
 ];
 
 export function createViewState() {
-  return { ...Object.fromEntries(OVERLAYS.map((o) => [o.id, VIEWS[0].layers.includes(o.id)])), view: 'rivers', manual: null, corridorsFree: false, meanderId: null };
+  return { ...Object.fromEntries(OVERLAYS.map((o) => [o.id, VIEWS.find((v) => v.id === 'corridors').layers.includes(o.id)])), mode: 'explore', basemap: 'light', view: 'corridors', manual: null, corridorsFree: false, meanderId: null };
 }
 
 export function applyView(map, state) {
+  const explore = state.mode === 'explore';
   for (const overlay of OVERLAYS) {
     if (!map.getLayer(overlay.layers[0])) continue;
-    setOverlay(map, overlay, state[overlay.id]);
+    setOverlay(map, overlay, explore ? ['catchments', 'rivers'].includes(overlay.id) : state[overlay.id]);
     if (overlay.opacity) map.setPaintProperty(overlay.opacity.layer, overlay.opacity.prop,
       landcoverOpacity(state[`${overlay.id}_opacity`] ?? overlay.opacity.value));
   }
   if (!map.getLayer('catchments-line')) return;
+  map.setPaintProperty('catchments-fill', 'fill-opacity', 0);
+  map.setPaintProperty('catchments-line', 'line-width', 1.5);
+  map.setPaintProperty('catchments-label', 'text-halo-width', 1.5);
+  map.setLayoutProperty('catchments-label', 'text-size', 12);
+  map.setLayoutProperty('catchments-label', 'text-transform', 'none');
+  map.setLayerZoomRange('weirs', 12, 24);
+  map.setLayoutProperty('corridors', 'line-cap', 'butt');
+  map.setPaintProperty('corridors', 'line-width', ['interpolate', ['linear'], ['zoom'], 9, 3, 14, 14]);
   map.setPaintProperty('ditches', 'line-color', state.view === 'barriers' ? '#a1aab2'
     : ['match', ['get', 'priority'], 'high', PRIORITY_COLORS.high, 'medium', PRIORITY_COLORS.medium, PRIORITY_COLORS.low]);
   // Boundaries provide context; the chosen topic carries the color.
   const manual = state.view === 'manual';
-  map.setPaintProperty('catchments-line', 'line-color', manual ? ['get', 'color'] : '#929ba5');
+  map.setPaintProperty('catchments-line', 'line-color', explore ? '#2584b3' : manual ? ['get', 'color'] : '#929ba5');
   map.setPaintProperty('catchments-fill', 'fill-color', manual ? ['get', 'color'] : '#929ba5');
   map.setPaintProperty('catchments-label', 'text-color', manual ? ['get', 'color'] : '#596574');
   applyCorridorOptions(map, state);
 }
 
 export function selectView(map, state, id) {
-  if (id === state.view) return;
+  if (!VIEWS.some((view) => view.id === id) && id !== 'manual') return;
+  state.mode = 'analyse';
+  if (id === state.view) {
+    applyView(map, state);
+    document.dispatchEvent(new CustomEvent('app:view-change', { detail: id }));
+    return;
+  }
   if (state.view === 'manual') {
     state.manual = Object.fromEntries(OVERLAYS.flatMap((o) => [[o.id, state[o.id]],
       ...(o.opacity ? [[`${o.id}_opacity`, state[`${o.id}_opacity`] ?? o.opacity.value]] : [])]));

@@ -94,7 +94,7 @@ export async function addLayers(map, gaugesGeojson) {
   landcoverRequested = false;
   map.addSource('landcover', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   for (const name of ['catchments', 'rivers', 'ditches', 'corridors', 'buildings', 'weirs', 'protected', 'intakes', 'ditch-ponding-sites', 'ditch-barrier-reaches', 'ditch-ponding']) {
-    map.addSource(name, geo(name));
+    map.addSource(name, { ...geo(name), ...(name === 'corridors' ? { tolerance: 0 } : {}) });
   }
   map.addSource('gauges', { type: 'geojson', data: gaugesGeojson });
   map.addSource('lidar', geo('lidar_candidates'));

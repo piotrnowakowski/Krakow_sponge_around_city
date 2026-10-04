@@ -1,3 +1,4 @@
+import { EXPLORE_STRINGS } from './explore-i18n.js';
 // Minimal EN/PL dictionary. Keys are looked up with t(key, vars).
 import { BARRIER_STRINGS } from './ditch-barrier-i18n.js';
 
@@ -681,7 +682,7 @@ export function setLang(next) {
 }
 
 export function t(key, vars = {}) {
-  let s = STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
+  let s = EXPLORE_STRINGS[lang][key] ?? STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
   for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, v);
   return s;
 }

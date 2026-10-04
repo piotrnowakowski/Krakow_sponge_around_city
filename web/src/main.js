@@ -1,11 +1,12 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
+import './explore.css';
 import { applyStatic, getLang, setLang, fmt, t } from './i18n.js';
 import { addLayers, bindPopups, createMap, createCatchmentFocus, DATA, OVERLAYS, setBasemap, setOverlay } from './map.js';
 import { renderCatchmentsPanel, renderLayersPanel, renderLegend } from './panels.js';
 import { fetchLiveGauges, fetchLiveWarnings, renderDroughtPanel } from './drought.js';
 import { addReportLayers, initReports, openForm, refreshReportLayer, renderReportsPanel, startPicking } from './reports.js';
-import { addScenarioLayer, getRetention, loadRetention } from './scenario.js';
+import { addScenarioLayer, getRetention, loadRetention, hideScenario } from './scenario.js';
 import { initTour, refreshTour, startTour, closeTour } from './tour.js';
 import { initMobile } from './mobile.js';
 import { addMeanderLayers, applyCorridorOptions, defaultProposal, fitMeander, hideMeanders, loadMeanders, selectedProposal } from './meanders.js';
@@ -80,6 +81,7 @@ function bbox(geometry) {
 }
 
 function switchTab(name) {
+  document.body.dataset.panel = name;
   barrierUI?.clear();
   document.querySelectorAll('.tabs button').forEach((b) => {
     const on = b.dataset.tab === name;
@@ -92,6 +94,7 @@ function switchTab(name) {
 }
 
 function setBasemapButton(map, which) {
+  if (state.mode === 'explore') state.basemap = which;
   document.getElementById('mobile-basemap').value = which;
   document.querySelectorAll('.basemaps button').forEach((x) => {
     x.classList.toggle('active', x.dataset.basemap === which);
@@ -118,6 +121,7 @@ function showMethods(map) {
 function renderAll(map) {
   if (layersReady && !focusedId) applyCorridorOptions(map, state);
   applyStatic();
+  syncMode(map);
   document.querySelectorAll('.lang button').forEach((b) => {
     b.classList.toggle('active', b.dataset.lang === getLang());
     b.setAttribute('aria-pressed', String(b.dataset.lang === getLang()));
@@ -144,10 +148,32 @@ function renderAll(map) {
   barrierUI?.refresh();
 }
 
+function syncMode(map) {
+  document.body.dataset.mode = state.mode;
+  document.querySelectorAll('button[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
+  map.resize();
+}
+
+function changeMode(map, mode) {
+  if (!layersReady) return;
+  if (!document.getElementById('tour').hidden) closeTour();
+  barrierUI?.clear(); hideScenario();
+  if (focusedId) { focusView.clear(); focusedId = null; document.body.classList.remove('catchment-focused'); }
+  document.querySelectorAll('.maplibregl-popup').forEach((p) => p.remove());
+  state.mode = mode;
+  applyView(map, state);
+  setBasemapButton(map, mode === 'explore' ? state.basemap : 'light');
+  syncMode(map);
+  switchTab('layers');
+  renderAll(map);
+  document.dispatchEvent(new Event('app:mode-change'));
+}
+
 async function main() {
   setLang(getLang());
   applyStatic();
   const map = createMap('map');
+  syncMode(map);
   focusView = createCatchmentFocus(map);
   window.__map = map; // handy for debugging and demo scripts
 
@@ -207,6 +233,11 @@ async function main() {
       next.focus();
       next.click();
     });
+  });
+  document.querySelectorAll('button[data-mode]').forEach((b) => b.addEventListener('click', () => changeMode(map, b.dataset.mode)));
+  document.addEventListener('app:view-change', () => {
+    if (document.body.dataset.mode !== state.mode) setBasemapButton(map, 'light');
+    hideScenario(); syncMode(map);
   });
   switchTab('layers');
   setBasemapButton(map, 'light');

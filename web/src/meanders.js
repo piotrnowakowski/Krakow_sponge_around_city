@@ -43,13 +43,14 @@ export function addMeanderLayers(map) {
 
 export function applyCorridorOptions(map, state) {
   if (!map.getLayer('corridors')) return;
-  const active = state.corridors;
+  const explore = state.mode === 'explore';
+  const active = !explore && state.corridors;
   const free = active && state.corridorsFree;
   const selected = active && selectedProposal(state);
   map.setFilter('corridors', free ? ['==', ['get', 'room_class'], 'open'] : null);
   // In free-only mode the thematic river lines must not repaint excluded reaches.
   for (const id of ['rivers', 'rivers-main', 'rivers-label'])
-    map.setLayoutProperty(id, 'visibility', state.rivers && !free && !selected ? 'visible' : 'none');
+    map.setLayoutProperty(id, 'visibility', explore ? (id === 'rivers-label' ? 'none' : 'visible') : state.rivers && !free && !selected && !(active && id === 'rivers-main') ? 'visible' : 'none');
   map.setPaintProperty('corridors', 'line-opacity', selected ? 0.18 : 0.78);
   for (const id of LAYERS) {
     if (!map.getLayer(id)) continue;

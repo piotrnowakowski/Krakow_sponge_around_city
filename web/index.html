@@ -45,6 +45,10 @@
       </div>
     </header>
 
+    <nav class="mode-switch" aria-label="Map mode / Tryb mapy">
+      <button type="button" data-mode="explore" aria-pressed="true" data-i18n="mode_explore"></button>
+      <button type="button" data-mode="analyse" aria-pressed="false" data-i18n="mode_analyse"></button>
+    </nav>
     <main class="layout">
       <aside class="sidebar" id="sidebar" tabindex="-1">
         <div class="mobile-sheet-header">
@@ -69,7 +73,7 @@
           <button type="button" id="mobile-tour" data-i18n="mobile_story"></button>
         </div>
         <nav class="tabs" role="tablist">
-          <button role="tab" id="tab-layers" aria-controls="panel-layers" data-tab="layers" class="active" data-i18n="tab_layers"></button>
+          <button role="tab" id="tab-layers" aria-controls="panel-layers" data-tab="layers" class="active" data-i18n="nav_map"></button>
           <button role="tab" id="tab-catchments" aria-controls="panel-catchments" data-tab="catchments" data-i18n="tab_catchments"></button>
           <button role="tab" id="tab-drought" aria-controls="panel-drought" data-tab="drought" data-i18n="tab_drought"></button>
           <button role="tab" id="tab-reports" aria-controls="panel-reports" data-tab="reports" data-i18n="tab_reports"></button>
@@ -86,15 +90,16 @@
 
       <div class="map-wrap">
         <div id="map"></div>
+        <div class="explore-caption"><strong data-i18n="explore_title"></strong><span data-i18n="explore_hint"></span></div>
         <label class="mobile-basemap"><span class="sr-only" data-i18n="mobile_basemap"></span><svg aria-hidden="true" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m3 8 9-5 9 5-9 5-9-5Z" fill="currentColor"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg><select id="mobile-basemap">
           <option value="light" data-i18n="bm_light"></option>
           <option value="ortho" data-i18n="bm_ortho"></option>
           <option value="relief" data-i18n="bm_relief"></option>
         </select></label>
         <div class="basemaps" role="group" aria-label="Basemap / Podkład">
-          <button data-basemap="light" class="active" data-i18n="bm_light"></button>
-          <button data-basemap="ortho" data-i18n="bm_ortho"></button>
-          <button data-basemap="relief" data-i18n="bm_relief"></button>
+          <button data-basemap="light" aria-pressed="true" class="active"><i class="basemap-preview preview-map" aria-hidden="true"></i><span data-i18n="bm_light"></span></button>
+          <button data-basemap="ortho" aria-pressed="false"><i class="basemap-preview preview-ortho" aria-hidden="true"></i><span data-i18n="bm_ortho"></span></button>
+          <button data-basemap="relief" aria-pressed="false"><i class="basemap-preview preview-relief" aria-hidden="true"></i><span data-i18n="bm_relief"></span></button>
         </div>
         <div class="legend" id="legend"></div>
         <div class="focus-bar" id="focus-bar" hidden aria-live="polite"></div>
