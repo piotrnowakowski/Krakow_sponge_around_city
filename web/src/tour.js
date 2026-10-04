@@ -145,7 +145,7 @@ function invite() {
 
 export function initTour(options) {
   ctx = options;
-  document.getElementById('tour-btn').addEventListener('click', startTour);
+  document.getElementById('tour-btn').onclick = startTour;
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !document.getElementById('tour').hidden && !document.querySelector('dialog[open]')) closeTour();
   });

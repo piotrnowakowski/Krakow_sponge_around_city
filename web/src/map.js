@@ -1,7 +1,8 @@
+import { bindFeatureDetails } from './feature-details.js';
 import maplibregl from 'maplibre-gl';
 import { t, fmt } from './i18n.js';
-import { isPicking } from './reports.js';
 import { pondFilter } from './ponding.js';
+import { setupDatasets, registerDataset, loadLayerSources, loadDataset } from './datasets.js';
 
 // Absolute URL: MapLibre fetches GeoJSON from a web worker, where relative paths break.
 export const DATA = new URL(`${import.meta.env.BASE_URL}data/`, document.baseURI).href;
@@ -82,6 +83,7 @@ function firstSymbolLayer(map) {
 
 export async function addLayers(map, gaugesGeojson) {
   const before = firstSymbolLayer(map);
+  setupDatasets(map, DATA);
 
   for (const [id, r] of Object.entries(RASTERS)) {
     map.addSource(id, { type: 'raster', tiles: r.tiles, tileSize: 256, attribution: r.attribution });
@@ -89,15 +91,11 @@ export async function addLayers(map, gaugesGeojson) {
   map.addLayer({ id: 'ortho', type: 'raster', source: 'ortho', layout: { visibility: 'none' } }, before);
   map.addLayer({ id: 'relief', type: 'raster', source: 'relief', layout: { visibility: 'none' } }, before);
 
-  const geo = (name) => ({ type: 'geojson', data: `${DATA}${name}.json` });
-  // Land cover is the largest file (~1.9 MB gzipped): load it only when it is first shown.
-  landcoverRequested = false;
-  map.addSource('landcover', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-  for (const name of ['catchments', 'rivers', 'ditches', 'corridors', 'buildings', 'weirs', 'protected', 'intakes', 'ditch-ponding-sites', 'ditch-barrier-reaches', 'ditch-ponding']) {
-    map.addSource(name, { ...geo(name), ...(name === 'corridors' ? { tolerance: 0 } : {}) });
+  for (const name of ['catchments', 'landcover', 'rivers', 'ditches', 'corridors', 'buildings', 'weirs', 'protected', 'intakes', 'ditch-ponding-sites', 'ditch-barrier-reaches', 'ditch-ponding']) {
+    registerDataset(map, name);
   }
   map.addSource('gauges', { type: 'geojson', data: gaugesGeojson });
-  map.addSource('lidar', geo('lidar_candidates'));
+  map.addSource('lidar', { type: 'geojson', data: `${DATA}lidar_candidates.json` });
 
   map.addLayer({
     id: 'landcover', type: 'fill', source: 'landcover',
@@ -239,18 +237,16 @@ export async function addLayers(map, gaugesGeojson) {
 export function setBasemap(map, which) {
   map.setLayoutProperty('ortho', 'visibility', which === 'ortho' ? 'visible' : 'none');
   map.setLayoutProperty('relief', 'visibility', which === 'relief' ? 'visible' : 'none');
+  map.fire('basemapchange', { which });
 }
 
-let landcoverRequested = false;
 export function ensureLandcover(map) {
-  if (landcoverRequested || !map.getSource('landcover')) return;
-  landcoverRequested = true;
-  map.getSource('landcover').setData(`${DATA}landcover.json`);
+  return loadDataset(map, 'landcover');
 }
 
 export function setOverlay(map, overlay, visible) {
-  if (visible && overlay.id === 'landcover') ensureLandcover(map);
   for (const id of overlay.layers) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+  if (visible) loadLayerSources(map, overlay.layers);
 }
 
 // Keep the overview's exact filters, colors and visibility for a reversible focus view.
@@ -274,6 +270,7 @@ export function createCatchmentFocus(map) {
       saved = structuredClone(map.getStyle().layers.filter((layer) => ids.has(layer.id)));
       const { id, color } = feature.properties;
       const visible = new Set(['catchments-fill', 'catchments-line', 'catchments-label', 'landcover', 'rivers', 'rivers-main', 'rivers-label', 'ditches-casing', 'ditches']);
+      loadLayerSources(map, [...visible]);
       for (const layer of saved) {
         map.setLayoutProperty(layer.id, 'visibility', visible.has(layer.id) ? 'visible' : 'none');
         if (!visible.has(layer.id)) continue;
@@ -298,71 +295,6 @@ const row = (label, value) => `<div class="pop-row"><span>${label}</span><strong
 const bar = (value, max, color) =>
   `<div class="pop-bar"><i style="width:${Math.round((100 * value) / max)}%;background:${color}"></i></div>`;
 
-export function bindPopups(map, { onGauge, onReport }) {
-  const popup = new maplibregl.Popup({ closeButton: true, maxWidth: '300px' });
-
-  map.on('click', 'ditches', (e) => {
-    if (map.queryRenderedFeatures(e.point, { layers: ['barriers'] }).length) return;
-    if (isPicking()) return;
-    const p = e.features[0].properties;
-    popup.setLngLat(e.lngLat).setHTML(`
-      <h4>${t('ditch_title')}</h4>
-      <div class="pop-score" style="--c:${PRIORITY_COLORS[p.priority]}">${p.score}<small>/100</small><span>${t(`pr_${p.priority}`)}</span></div>
-      ${row(t('ditch_context'), t(`lc_${p.context}`))}${bar(p.s_context, 40, PRIORITY_COLORS[p.priority])}
-      ${row(t('ditch_houses'), `${fmt(p.dist_building_m, 0)} m`)}${bar(p.s_houses, 30, PRIORITY_COLORS[p.priority])}
-      ${row(t('ditch_slope'), `${fmt(p.slope_pct, 1)}%`)}${bar(p.s_flat, 20, PRIORITY_COLORS[p.priority])}
-      ${row(t('ditch_length'), `${fmt(p.length_m, 0)} m`)}${bar(p.s_length, 10, PRIORITY_COLORS[p.priority])}
-      <div class="pop-storage">${row(t('ditch_storage'), `≈ ${fmt(p.volume_m3, 0)} m³`)}
-        <p>${t('ditch_storage_note', { rank: p.rank })}</p></div>
-      <p class="pop-note">${t('ditch_note')}</p>
-      <button type="button" class="btn small pop-report">${t('rep_this_ditch')}</button>`).addTo(map);
-    const lngLat = e.lngLat;
-    popup.getElement().querySelector('.pop-report').addEventListener('click', () => {
-      popup.remove();
-      onReport(lngLat);
-    });
-  });
-
-  map.on('click', 'corridors', (e) => {
-    if (isPicking()) return;
-    const p = e.features[0].properties;
-    popup.setLngLat(e.lngLat).setHTML(`
-      <h4>${t('corridor_title', { length: fmt(p.length_m, 0) })}</h4>
-      <strong class="corridor-status" style="--c:${ROOM_COLORS[p.room_class]}">${t(`room_${p.room_class}`)}</strong>
-      <p class="pop-note">${t(`corridor_reason_${p.reason}`)}</p>
-      ${row(t('corridor_distance'), p.building_distance_m == null ? t('corridor_no_building') : `${fmt(p.building_distance_m, 1)} m`)}
-      <p class="pop-note">${t('corridor_distance_note')}</p>
-      ${row(t('corridor_free'), `${fmt(p.room_pct, 0)}%`)}${bar(p.room_pct, 100, ROOM_COLORS[p.room_class])}
-      ${row(t('corridor_built'), `${fmt(p.built_pct, 0)}%`)}
-      <details class="pop-note"><summary>${t('corridor_method')}</summary>${t('corridor_rule')}</details>`).addTo(map);
-  });
-
-  map.on('click', 'lidar', (e) => {
-    if (isPicking()) return;
-    const p = e.features[0].properties;
-    popup.setLngLat(e.lngLat).setHTML(`
-      <h4>${t('lidar_title')}</h4>
-      <span class="tag-experimental">${t('experimental')}</span>
-      ${row(t('lidar_length'), `${fmt(p.length_m, 0)} m`)}
-      ${row(t('lidar_depth'), `${fmt(p.depth_mean_m, 2)} m`)}
-      <p class="pop-note">${t('lidar_note')}</p>
-      <button type="button" class="btn small pop-report">${t('rep_this_ditch')}</button>`).addTo(map);
-    const lngLat = e.lngLat;
-    popup.getElement().querySelector('.pop-report').addEventListener('click', () => {
-      popup.remove();
-      onReport(lngLat);
-    });
-  });
-
-  map.on('click', 'weirs', (e) => {
-    if (isPicking()) return;
-    popup.setLngLat(e.lngLat).setHTML(`<h4>${t('weir_title')}</h4><p>${e.features[0].properties.kind}</p>`).addTo(map);
-  });
-
-  map.on('click', 'gauges', (e) => !isPicking() && onGauge(e.features[0].properties.code));
-
-  for (const id of ['ditches', 'lidar', 'corridors', 'weirs', 'gauges']) {
-    map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
-    map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
-  }
+export function bindPopups(map, options) {
+  return bindFeatureDetails(map, options, { priorities: PRIORITY_COLORS, rooms: ROOM_COLORS });
 }

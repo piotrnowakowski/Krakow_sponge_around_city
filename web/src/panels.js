@@ -1,3 +1,4 @@
+import { OVERVIEW_HEIGHT } from './ponding.js';
 import { t, fmt } from './i18n.js';
 import { bindScenario, scenarioHtml } from './scenario.js';
 import { LANDCOVER_COLORS, LIDAR_COLOR, OVERLAYS, PRIORITY_COLORS, ROOM_COLORS, landcoverOpacity, setOverlay } from './map.js';
@@ -22,7 +23,8 @@ export function legendFor(id, state = {}) {
     case 'barriers':
       return swatches([['#8c4cbb', t('barrier_candidate')]], 'dot')
         + swatches([['#7dd3fc', t('pond_shallow')], ['#2196d2', t('pond_medium')], ['#075985', t('pond_deep')]])
-        + swatches([['#536575', t('barrier_downstream')]], 'line');
+        + swatches([['#536575', t('barrier_downstream')]], 'line')
+        + `<p class="pond-overview-note fine">${t('pond_overview_height', { height: fmt(OVERVIEW_HEIGHT) })}</p>`;
     case 'lidar':
       return swatches([[LIDAR_COLOR, t('lidar_legend')], ['#111827', t('lidar_tile')]], 'dash');
     case 'corridors':
@@ -48,7 +50,7 @@ export function renderLayersPanel(el, map, state, onChange) {
       <p>${t(`view_${state.view}_hint`)}</p>
       ${manual ? '' : `<p class="view-includes">${t('view_includes')}: ${VIEWS.find((v) => v.id === state.view).layers.map((id) => t(`lyr_${id}`)).join(' · ')}</p>`}
       ${manual ? '' : ['rivers', 'ditches', 'barriers', 'lidar', 'corridors', 'landcover', 'gauges'].filter((id) => state[id] && !(id === 'ditches' && state.view === 'barriers') && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId))).map((id) => legendFor(id, state)).join('')}
-    </details>${state.corridors ? corridorOptionsHtml(state) : ''}<details class="advanced-views" ${manual ? 'open' : ''}><summary>${t('analysis_advanced')}</summary><button type="button" class="btn" data-view="manual" aria-pressed="${manual}">${t('view_manual')}</button></details>` + (manual ? groups
+    </details>${state.corridors ? corridorOptionsHtml(state) : ''}<details class="advanced-views" ${manual ? 'open' : ''}><summary>${t('analysis_advanced')}</summary><button type="button" class="btn" data-view="manual" aria-pressed="${manual}">${t('view_manual')}</button></details><section id="candidate-browser" hidden></section><section id="gauge-status" hidden></section>` + (manual ? groups
     .map(
       (g) => `
       <h2 class="group-title">${t(g)}</h2>
@@ -91,8 +93,7 @@ export function renderLayersPanel(el, map, state, onChange) {
       state[o.id] = input.checked;
       if (map.getLayer(o.layers[0])) setOverlay(map, o, input.checked);
       applyCorridorOptions(map, state);
-      renderLayersPanel(el, map, state, onChange);
-      el.querySelector(`[data-overlay="${o.id}"]`).focus({ preventScroll: true });
+      input.closest('.layer').classList.toggle('on', input.checked);
       onChange();
     });
   });
@@ -131,7 +132,7 @@ export function renderCatchmentsPanel(el, stats, { onZoom, selected = null }) {
       .filter(([id]) => !selected || id === selected)
       .map(([id, s]) => {
         const room = s.corridor_room_km;
-        const roomTotal = (room.open || 0) + (room.partial || 0) + (room.constrained || 0);
+        const roomTotal = s.main_stem_km ?? ((room.open || 0) + (room.partial || 0) + (room.constrained || 0));
         return `
       <article class="card" style="--accent:${s.color}">
         <header>

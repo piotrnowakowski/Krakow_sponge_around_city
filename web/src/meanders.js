@@ -6,13 +6,14 @@ let loadFailed = false;
 const LAYERS = ['meander-envelope', 'meander-current', 'meander-proposal-casing', 'meander-proposal'];
 const names = { rudawa: 'Rudawa', pradnik: 'Prądnik', dlubnia: 'Dłubnia' };
 
-export async function loadMeanders(url) {
+export async function loadMeanders(url, map) {
   try {
     const response = await fetch(`${url}meanders.json`);
     if (!response.ok) throw new Error('Meander data unavailable');
     const loaded = await response.json();
     if (!Array.isArray(loaded.features)) throw new Error('Invalid meander data');
     data = loaded;
+    map?.getSource('meanders')?.setData(data);
   } catch {
     loadFailed = true;
   }

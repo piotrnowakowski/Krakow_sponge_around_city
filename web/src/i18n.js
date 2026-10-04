@@ -1,3 +1,4 @@
+import { REVIEW_STRINGS } from './review-i18n.js';
 import { EXPLORE_STRINGS } from './explore-i18n.js';
 // Minimal EN/PL dictionary. Keys are looked up with t(key, vars).
 import { BARRIER_STRINGS } from './ditch-barrier-i18n.js';
@@ -75,7 +76,7 @@ const STRINGS = {
     lyr_buildings_d: 'BDOT10k buildings within 100 m of the main stems.',
     lyr_weirs: 'Weirs and dams',
     lyr_weirs_d: 'BDOT10k hydraulic structures.',
-    lyr_gauges: 'IMGW river gauges (live)',
+    lyr_gauges: 'IMGW river gauges',
     lyr_gauges_d: 'Red = flow below the long-term mean low flow (SNQ).',
     lyr_intakes: 'Kraków water treatment plants',
     lyr_intakes_d: 'Rudawa and Dłubnia supply Kraków tap water.',
@@ -309,7 +310,7 @@ const STRINGS = {
 
     about_html: `
       <h3>Why</h3>
-      <p>Kraków takes about 97% of its tap water from rivers. Rudawa and Dłubnia are two of them, and in 2026 Rudawa and Prądnik ran at their lowest levels since 1991. Scientists blame lost retention: drained fields and forests, sealed surfaces and straightened channels. A <em>sponge city</em> needs a sponge landscape around it.</p>
+      <p>Kraków takes about 97% of its tap water from rivers. Rudawa and Dłubnia are two of them, and the app compares their 2026 flow with records since 1991. Scientists blame lost retention: drained fields and forests, sealed surfaces and straightened channels. A <em>sponge city</em> needs a sponge landscape around it.</p>
       <h3>What this prototype does</h3>
       <ul>
         <li>Delineates the three catchments from open data and checks them against the official MPHP map.</li>
@@ -332,7 +333,7 @@ const STRINGS = {
         <li>Basemap: OpenFreeMap © OpenMapTiles, © OpenStreetMap contributors</li>
       </ul>
       <h3>Honest limits</h3>
-      <p>Catchments come from a 25 m surface model (−5% to −0.2% vs MPHP). The ditch score is a transparent screening heuristic, not a hydrological model. BDOT10k misses many ditches and all field drains. ERA5 cells are about 25 km wide. IMGW 2026 data are operational and not yet verified.</p>
+      <p>Catchments come from a 25 m surface model. The ditch score is a transparent screening heuristic, not a hydrological model. BDOT10k misses many ditches and all field drains. ERA5 cells are about 25 km wide. IMGW 2026 data are operational and not yet verified.</p>
     `,
   },
   pl: {
@@ -407,7 +408,7 @@ const STRINGS = {
     lyr_buildings_d: 'Budynki BDOT10k do 100 m od głównych cieków.',
     lyr_weirs: 'Jazy i zapory',
     lyr_weirs_d: 'Budowle hydrotechniczne BDOT10k.',
-    lyr_gauges: 'Wodowskazy IMGW (na żywo)',
+    lyr_gauges: 'Wodowskazy IMGW',
     lyr_gauges_d: 'Czerwony = przepływ poniżej średniego niskiego (SNQ).',
     lyr_intakes: 'Zakłady uzdatniania wody Krakowa',
     lyr_intakes_d: 'Rudawa i Dłubnia zasilają krakowskie wodociągi.',
@@ -641,7 +642,7 @@ const STRINGS = {
 
     about_html: `
       <h3>Dlaczego</h3>
-      <p>Kraków bierze ok. 97% wody z rzek. Rudawa i Dłubnia są wśród nich, a w 2026 r. Rudawa i Prądnik miały najniższe przepływy od 1991 r. Naukowcy wskazują na utratę retencji: zmeliorowane pola i lasy, zabetonowane powierzchnie i wyprostowane koryta. <em>Miasto-gąbka</em> potrzebuje gąbki wokół siebie.</p>
+      <p>Kraków bierze ok. 97% wody z rzek. Rudawa i Dłubnia są wśród nich. Aplikacja porównuje przepływy w 2026 r. z dostępnymi danymi od 1991 r. Naukowcy wskazują na utratę retencji: zmeliorowane pola i lasy, zabetonowane powierzchnie i wyprostowane koryta. <em>Miasto-gąbka</em> potrzebuje gąbki wokół siebie.</p>
       <h3>Co robi prototyp</h3>
       <ul>
         <li>Wyznacza trzy zlewnie z otwartych danych i porównuje je z oficjalnym MPHP.</li>
@@ -664,25 +665,27 @@ const STRINGS = {
         <li>Podkład: OpenFreeMap © OpenMapTiles, © autorzy OpenStreetMap</li>
       </ul>
       <h3>Ograniczenia</h3>
-      <p>Zlewnie wyznaczono z modelu powierzchni 25 m (−5% do −0,2% względem MPHP). Ocena rowów to przejrzysta heurystyka przesiewowa, a nie model hydrologiczny. BDOT10k pomija wiele rowów i cały drenaż podziemny. Komórki ERA5 mają ok. 25 km. Dane IMGW z 2026 r. są operacyjne, jeszcze niezweryfikowane.</p>
+      <p>Zlewnie wyznaczono z modelu powierzchni 25 m. Ocena rowów to przejrzysta heurystyka przesiewowa, a nie model hydrologiczny. BDOT10k pomija wiele rowów i cały drenaż podziemny. Komórki ERA5 mają ok. 25 km. Dane IMGW z 2026 r. są operacyjne, jeszcze niezweryfikowane.</p>
     `,
   },
 };
 
-let lang = localStorage.getItem('lang') || ((navigator.language || 'en').startsWith('pl') ? 'pl' : 'en');
+let savedLang;
+try { savedLang = localStorage.getItem('lang'); } catch { /* Storage is optional. */ }
+let lang = ['en', 'pl'].includes(savedLang) ? savedLang : ((navigator.language || 'en').startsWith('pl') ? 'pl' : 'en');
 
 export function getLang() {
   return lang;
 }
 
 export function setLang(next) {
-  lang = next;
-  localStorage.setItem('lang', next);
+  lang = next === 'pl' ? 'pl' : 'en';
+  try { localStorage.setItem('lang', lang); } catch { /* Keep the session usable. */ }
   document.documentElement.lang = next;
 }
 
 export function t(key, vars = {}) {
-  let s = EXPLORE_STRINGS[lang][key] ?? STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
+  let s = EXPLORE_STRINGS[lang][key] ?? REVIEW_STRINGS[lang][key] ?? STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
   for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, v);
   return s;
 }

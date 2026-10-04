@@ -1,5 +1,6 @@
 import Chart from 'chart.js/auto';
 import { t, fmt, ordinal, getLang } from './i18n.js';
+import { escapeHtml } from './ui.js';
 
 const charts = [];
 const RED = '#e63946';
@@ -158,11 +159,15 @@ function warningsHtml(list, live, generated) {
     ${rest.length ? `<details class="more"><summary>${t('dr_more_warnings', { n: rest.length })}</summary><ul class="warnings">${rest.map(item).join('')}</ul></details>` : ''}`;
 }
 
-export function renderDroughtPanel(el, drought, catchStats, { liveWarnings, focusStation } = {}) {
+export function renderDroughtPanel(el, drought, catchStats, { liveWarnings, selection = {} } = {}) {
+  const scroll = el.scrollTop;
+  const active = el.contains(document.activeElement) ? { id: document.activeElement.id, station: document.activeElement.dataset.station } : null;
+  const opened = [...el.querySelectorAll('details[open]')].map((d) => d.id);
   charts.splice(0).forEach((c) => c.destroy());
   const year = drought.year;
   const stations = Object.values(drought.stations);
-  const station = drought.stations[focusStation] || stations[0];
+  const station = drought.stations[selection.station] || stations[0];
+  selection.station = station.code;
   const climateIds = Object.keys(drought.climate);
 
   const rankText = (s) =>
@@ -231,42 +236,41 @@ export function renderDroughtPanel(el, drought, catchStats, { liveWarnings, focu
     climateCharts.push(cwbChart(el.querySelector('#c-cwb'), c, year));
     climateCharts.push(monthChart(el.querySelector('#c-month'), c, year));
     charts.push(...climateCharts);
+    climateCharts.forEach(accessibleChart);
   };
   const select = el.querySelector('#climate-select');
-  select.addEventListener('change', () => showClimate(select.value));
-  showClimate(station.catchment in drought.climate ? station.catchment : climateIds[0]);
-  select.value = station.catchment in drought.climate ? station.catchment : climateIds[0];
+  select.addEventListener('change', () => { selection.climate = select.value; showClimate(select.value); });
+  selection.climate = selection.climate in drought.climate ? selection.climate : station.catchment in drought.climate ? station.catchment : climateIds[0];
+  showClimate(selection.climate);
+  select.value = selection.climate;
 
   el.querySelectorAll('[data-station]').forEach((b) =>
-    b.addEventListener('click', () =>
-      renderDroughtPanel(el, drought, catchStats, { liveWarnings, focusStation: b.dataset.station }),
-    ),
+    b.addEventListener('click', () => {
+      selection.station = b.dataset.station;
+      renderDroughtPanel(el, drought, catchStats, { liveWarnings, selection });
+    }),
   );
+  charts.slice(0, 2).forEach(accessibleChart);
+  for (const id of opened) { const d = el.querySelector(`#${id}`); if (d) d.open = true; }
+  if (active?.id) el.querySelector(`#${active.id}`)?.focus({ preventScroll: true });
+  else if (active?.station) el.querySelector(`[data-station="${active.station}"]`)?.focus({ preventScroll: true });
+  el.scrollTop = scroll;
 }
 
-export async function fetchLiveWarnings() {
-  try {
-    const r = await fetch('https://danepubliczne.imgw.pl/api/data/warningshydro');
-    if (!r.ok) return null;
-    const data = await r.json();
-    return data
-      .map((w) => ({ ...w, regions: (w.obszary || []).filter((o) => o.wojewodztwo === 'małopolskie') }))
-      .filter((w) => w.regions.length)
-      .map((w) => ({ event: w.zdarzenie, from: w.data_od, to: w.data_do, areas: w.regions.map((o) => o.opis) }));
-  } catch {
-    return null;
-  }
+function accessibleChart(chart) {
+  const canvas = chart.canvas, id = canvas.id;
+  const labels = { 'c-flow': 'dr_flow_title', 'c-rank': 'dr_rank_title', 'c-cwb': 'dr_cwb_title', 'c-month': 'dr_month_title' };
+  const title = t(labels[id], { year: new Date().getFullYear() });
+  const units = id === 'c-flow' || id === 'c-rank' ? 'm³/s' : 'mm';
+  canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `${title}. ${t('chart_description')}`);
+  canvas.setAttribute('aria-describedby', `${id}-description`);
+  let details = document.getElementById(`${id}-data`);
+  if (!details) { details = document.createElement('details'); details.className = 'chart-data'; details.id = `${id}-data`; canvas.parentElement.after(details); }
+  const datasets = chart.data.datasets;
+  details.innerHTML = `<summary>${t('chart_data')} · ${units}</summary><p id="${id}-description">${escapeHtml(title)} · ${units}. ${t('chart_description')}</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(title)}"><table><caption>${escapeHtml(title)} (${units})</caption><thead><tr><th scope="col">${t('chart_date')}</th>
+    ${datasets.map((d, i) => `<th scope="col">${escapeHtml(d.label ?? t('chart_value'))}${d.label === t('s_range') ? ` (${i === 0 ? 'P10' : 'P90'})` : ''}</th>`).join('')}</tr></thead><tbody>
+    ${chart.data.labels.map((label, i) => `<tr><th scope="row">${escapeHtml(id === 'c-cwb' ? doyLabel(label) : label)}</th>${datasets.map((d) => `<td>${d.data[i] == null ? t('chart_missing') : fmt(d.data[i], 3)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
-export async function fetchLiveGauges(codes) {
-  try {
-    const r = await fetch('https://danepubliczne.imgw.pl/api/data/hydro/');
-    if (!r.ok) return {};
-    const data = await r.json();
-    return Object.fromEntries(
-      data.filter((s) => codes.includes(s.id_stacji)).map((s) => [s.id_stacji, { q: Number(s.przeplyw), date: s.przeplyw_data }]),
-    );
-  } catch {
-    return {};
-  }
-}
+export { fetchLiveWarnings, fetchLiveGauges } from './gauges.js';
