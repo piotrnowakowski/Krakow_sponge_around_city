@@ -1,4 +1,4 @@
-// Story tour: invite on first visit, four steps, desktop and mobile screenshots.
+// Story tour: invite on first visit, five steps, desktop and mobile screenshots.
 import { launch, watch, ready } from './check.mjs';
 import { mkdirSync } from 'node:fs';
 
@@ -16,12 +16,12 @@ for (const [name, viewport] of [['desktop', { width: 1440, height: 900 }], ['mob
   await page.waitForSelector('#tour-invite:not([hidden])');
   await page.screenshot({ path: `${out}/${name}-0-invite.png` });
   await page.click('#tour-invite [data-inv=yes]');
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 5; i++) {
     await page.waitForSelector('#tour:not([hidden])');
     await page.waitForTimeout(i === 3 ? 5000 : 2500);
     if (name === 'desktop') console.log(`step ${i}:`, (await page.locator('#tour').innerText()).replace(/\s+/g, ' ').slice(0, 400));
     await page.screenshot({ path: `${out}/${name}-${i}.png` });
-    if (i < 4) await page.click('#tour [data-tour=next]');
+    if (i < 5) await page.click('#tour [data-tour=next]');
   }
   await page.click('#tour [data-tour=report]');
   await page.waitForSelector('#panel-reports.active');

@@ -49,7 +49,7 @@ Kraków Sponge is a bilingual (EN/PL) web map and dashboard for the three small 
    - An **experimental LiDAR pilot** finds ditches the national map misses: in one 2×2 km tile it detects 12.5 km of candidate unmapped ditches next to 11.4 km of mapped ditches and streams.
 4. **What do people on the ground see?** Citizen reports of ditches, streams, springs and culverts (flowing, standing water, dry, already blocked; date, note, photo). Reports stay in the browser until the user exports them as GeoJSON or sends them to the project as a prefilled GitHub issue. There is no backend and no account.
 
-A four-step **story tour** walks a first-time visitor through drought → catchments → ditches → room for the river in about a minute.
+A five-step **story tour** walks a first-time visitor through drought → catchments → ditches → room for the river → calculated bends. The fifth step filters to free sections and compares the current channel with a measured bend concept, keeping its endpoints and screening mapped obstacles. These are geometric concepts for investigation, not engineering designs or predictions of storage.
 
 **Target users.**
 - Residents, anglers and walkers who see the streams every day.

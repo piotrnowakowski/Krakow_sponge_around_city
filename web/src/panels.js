@@ -2,6 +2,7 @@ import { t, fmt } from './i18n.js';
 import { bindScenario, scenarioHtml } from './scenario.js';
 import { LANDCOVER_COLORS, LIDAR_COLOR, OVERLAYS, PRIORITY_COLORS, ROOM_COLORS, landcoverOpacity, setOverlay } from './map.js';
 import { VIEWS, selectView } from './views.js';
+import { applyCorridorOptions, bindCorridorOptions, corridorOptionsHtml } from './meanders.js';
 
 const LC_ORDER = ['forest', 'grassland', 'arable', 'orchard', 'water', 'built', 'industrial', 'transport', 'bare'];
 
@@ -10,7 +11,7 @@ const swatches = (entries, kind = 'box') =>
     .map(([color, label]) => `<li><i class="sw-${kind}" style="--c:${color}"></i>${label}</li>`)
     .join('')}</ul>`;
 
-export function legendFor(id) {
+export function legendFor(id, state = {}) {
   switch (id) {
     case 'rivers':
       return swatches([['#1e40af', t('river_main')], ['#2b6cb0', t('river_streams')]], 'line');
@@ -21,7 +22,7 @@ export function legendFor(id) {
     case 'lidar':
       return swatches([[LIDAR_COLOR, t('lidar_legend')], ['#111827', t('lidar_tile')]], 'dash');
     case 'corridors':
-      return swatches(['open', 'partial', 'constrained'].map((k) => [ROOM_COLORS[k], t(`room_${k}`)]), 'thick');
+      return swatches((state.corridorsFree ? ['open'] : ['open', 'partial', 'constrained']).map((k) => [ROOM_COLORS[k], t(`room_${k}`)]), 'thick');
     case 'gauges':
       return swatches([['#e63946', t('gauge_low')], ['#2a9d8f', t('gauge_ok')]], 'dot');
     default:
@@ -39,10 +40,11 @@ export function renderLayersPanel(el, map, state, onChange) {
           <strong>${t(`view_${view.id}`)}</strong><span>${t(`view_${view.id}_d`)}</span>
         </button>`).join('')}
     </div>
+    ${state.corridors ? corridorOptionsHtml(state) : ''}
     <section class="view-details"><h2>${t(`view_${state.view}`)}</h2>
       <p>${t(`view_${state.view}_hint`)}</p>
       ${manual ? '' : `<p class="view-includes">${t('view_includes')}: ${VIEWS.find((v) => v.id === state.view).layers.map((id) => t(`lyr_${id}`)).join(' · ')}</p>`}
-      ${manual ? '' : ['rivers', 'ditches', 'lidar', 'corridors', 'landcover', 'gauges'].filter((id) => state[id]).map((id) => legendFor(id)).join('')}
+      ${manual ? '' : ['rivers', 'ditches', 'lidar', 'corridors', 'landcover', 'gauges'].filter((id) => state[id] && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId))).map((id) => legendFor(id, state)).join('')}
     </section>` + (manual ? groups
     .map(
       (g) => `
@@ -58,12 +60,17 @@ export function renderLayersPanel(el, map, state, onChange) {
           </label>
           <p class="layer-desc">${t(`lyr_${o.id}_d`)}</p>
           ${o.opacity ? `<label class="opacity">${t('opacity')} <input type="range" min="0" max="1" step="0.05" value="${state[`${o.id}_opacity`] ?? o.opacity.value}" data-opacity="${o.id}" /></label>` : ''}
-          <div class="layer-legend">${legendFor(o.id)}</div>
+          <div class="layer-legend">${legendFor(o.id, state)}</div>
         </div>`,
         )
         .join('')}`,
     )
     .join('') : '');
+
+  bindCorridorOptions(el, map, state, () => {
+    renderLayersPanel(el, map, state, onChange);
+    onChange();
+  });
 
   el.querySelectorAll('[data-view]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -80,7 +87,9 @@ export function renderLayersPanel(el, map, state, onChange) {
       const o = OVERLAYS.find((x) => x.id === input.dataset.overlay);
       state[o.id] = input.checked;
       if (map.getLayer(o.layers[0])) setOverlay(map, o, input.checked);
-      input.closest('.layer').classList.toggle('on', input.checked);
+      applyCorridorOptions(map, state);
+      renderLayersPanel(el, map, state, onChange);
+      el.querySelector(`[data-overlay="${o.id}"]`).focus({ preventScroll: true });
       onChange();
     });
   });
@@ -95,8 +104,8 @@ export function renderLayersPanel(el, map, state, onChange) {
 
 export function renderLegend(el, state) {
   const parts = ['rivers', 'ditches', 'lidar', 'corridors', 'landcover', 'gauges']
-    .filter((id) => state[id])
-    .map((id) => `<div class="legend-block"><h5>${t(`lyr_${id}`)}</h5>${legendFor(id)}</div>`);
+    .filter((id) => state[id] && !(id === 'rivers' && state.corridors && (state.corridorsFree || state.meanderId)))
+    .map((id) => `<div class="legend-block"><h5>${t(`lyr_${id}`)}</h5>${legendFor(id, state)}</div>`);
   el.innerHTML = parts.join('');
   el.hidden = parts.length === 0;
 }

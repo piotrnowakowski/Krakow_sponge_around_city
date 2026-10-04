@@ -1,7 +1,8 @@
-// A four-step guided story: drought numbers -> catchments -> ditches -> room for the river.
+// Five steps: drought -> catchments -> ditches -> constraints -> calculated bends.
 // Numbers come from the data files, so the text follows the daily drought refresh.
 import { t, fmt, ordinal } from './i18n.js';
 import { getRetention } from './scenario.js';
+import { defaultProposal, meanderEmptyMessage } from './meanders.js';
 
 const SEEN = 'ks_tour_seen';
 let ctx = null;
@@ -28,6 +29,7 @@ function steps() {
   const r = ret?.catchments.rudawa;
   const room = stats.pradnik.corridor_room_km;
   const roomTotal = (room.open || 0) + (room.partial || 0) + (room.constrained || 0);
+  const proposal = defaultProposal()?.properties;
   return [
     {
       title: t('tour1_title'),
@@ -55,6 +57,14 @@ function steps() {
       title: t('tour4_title'),
       text: t('tour4_text', { open: fmt(room.open || 0, 0), total: fmt(roomTotal, 0) }),
       go: () => ctx.show({ tab: 'layers', view: 'corridors', center: [19.915, 50.115], zoom: 12.4, basemap: 'light' }),
+    },
+    {
+      title: t('tour5_title'),
+      text: proposal ? t('tour5_text', {
+        current: fmt(proposal.current_m, 0), proposed: fmt(proposal.proposed_m, 0),
+        extra: fmt(proposal.extra_pct, 1), offset: fmt(proposal.max_offset_m, 0),
+      }) : meanderEmptyMessage(),
+      go: () => ctx.show({ tab: 'layers', view: 'corridors', meander: true, basemap: 'light' }),
       last: true,
     },
   ];

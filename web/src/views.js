@@ -1,4 +1,5 @@
 import { OVERLAYS, landcoverOpacity, setOverlay } from './map.js';
+import { applyCorridorOptions } from './meanders.js';
 
 export const VIEWS = [
   { id: 'rivers', color: '#1f78b4', layers: ['catchments', 'rivers'] },
@@ -9,7 +10,7 @@ export const VIEWS = [
 ];
 
 export function createViewState() {
-  return { ...Object.fromEntries(OVERLAYS.map((o) => [o.id, VIEWS[0].layers.includes(o.id)])), view: 'rivers', manual: null };
+  return { ...Object.fromEntries(OVERLAYS.map((o) => [o.id, VIEWS[0].layers.includes(o.id)])), view: 'rivers', manual: null, corridorsFree: false, meanderId: null };
 }
 
 export function applyView(map, state) {
@@ -25,6 +26,7 @@ export function applyView(map, state) {
   map.setPaintProperty('catchments-line', 'line-color', manual ? ['get', 'color'] : '#929ba5');
   map.setPaintProperty('catchments-fill', 'fill-color', manual ? ['get', 'color'] : '#929ba5');
   map.setPaintProperty('catchments-label', 'text-color', manual ? ['get', 'color'] : '#596574');
+  applyCorridorOptions(map, state);
 }
 
 export function selectView(map, state, id) {
