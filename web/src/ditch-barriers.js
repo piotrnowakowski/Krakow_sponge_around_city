@@ -9,7 +9,7 @@ const volume = (v) => v == null ? '—' : `≈ ${fmt(v, 1)} m³`;
 export function bindBarrierUI(map, { onMethods } = {}) {
   const el = document.createElement('section');
   el.id = 'barrier-detail'; el.hidden = true;
-  document.querySelector('.sidebar').append(el);
+  document.querySelector('.sheet-content').append(el);
   let selected = null, site = null, height = 0.6, head = 0.1, failure = false, request = 0, dataPromise;
   const metadata = () => dataPromise ??= fetch(`${DATA}ditch-ponding-meta.json`).then((r) => {
     if (!r.ok) throw Error('ponding data unavailable');
@@ -34,6 +34,7 @@ export function bindBarrierUI(map, { onMethods } = {}) {
     if (!selected) return;
     request++; selected = null; site = null; failure = false; height = 0.6; el.hidden = true;
     document.body.classList.remove('barrier-selected'); paint();
+    document.dispatchEvent(new Event('app:barrier-change'));
   }
 
   function fit() {
@@ -125,6 +126,7 @@ export function bindBarrierUI(map, { onMethods } = {}) {
     document.querySelector('[data-tab="layers"]').click();
     selected = feature; site = null; height = 0.6; head = 0.1;
     el.hidden = false; document.body.classList.add('barrier-selected'); paint(); el.scrollTop = 0;
+    document.dispatchEvent(new Event('app:barrier-change'));
     loadSelected();
   });
   map.on('mouseenter', 'barriers', () => { map.getCanvas().style.cursor = 'pointer'; });

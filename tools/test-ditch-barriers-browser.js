@@ -1,3 +1,4 @@
+import { setLanguage, openTab } from './mobile-helpers.mjs';
 // Usage: node tools/test-ditch-barriers-browser.js [url] [output-directory]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -11,7 +12,7 @@ async function verify(page) {
   page.on('pageerror', (e) => errors.push(e.message));
   const check = (v, message) => { if (!v) throw Error(message); };
   const select = async () => {
-    await page.locator('[data-tab="layers"]').click();
+    await openTab(page, 'layers');
     await page.locator('[data-view="barriers"]').click();
     const c = await page.evaluate(async () => {
       const d = await (await fetch('data/ditch-ponding-sites.json')).json();
@@ -34,7 +35,7 @@ async function verify(page) {
   await page.addInitScript(() => localStorage.setItem('ks_tour_seen', '1'));
   await page.goto(url);
   await page.waitForFunction(() => window.__map?.getLayer('pond-depth') && document.querySelector('[data-view="barriers"]'));
-  await page.locator('[data-lang="en"]').click();
+  await setLanguage(page, 'en');
   await select();
   check((await page.locator('.pond-kpis').innerText()).includes('2,594'), 'Wrong terrain footprint');
   await page.screenshot({ path: resolve(output, 'desktop.png') });
@@ -48,7 +49,7 @@ async function verify(page) {
   await page.locator('[name="overflowHead"]').fill('-1');
   check(await page.locator('[role="alert"]').isVisible(), 'Invalid head accepted');
   await page.locator('[name="overflowHead"]').fill('0.1');
-  await page.locator('[data-lang="pl"]').click();
+  await setLanguage(page, 'pl');
   check((await page.locator('#barrier-detail').innerText()).includes('Woda zatrzymana wokół rowu'), 'Missing Polish');
   check(await page.locator('[name="fillHeight"]').inputValue() === '1', 'Language reset height');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -66,7 +67,7 @@ async function verify(page) {
   await method.scrollIntoViewIfNeeded();
   check(!await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), 'Mobile methods overflow');
   await page.screenshot({ path: resolve(output, 'methods-mobile.png') });
-  await page.locator('[data-lang="en"]').click();
+  await setLanguage(page, 'en');
   check((await method.innerText()).includes('existing depression storage'), 'Missing English baseline subtraction');
   check((await method.innerText()).includes('remaining drainage stays open'), 'Missing open-drain explanation');
   await method.locator('summary').filter({ hasText: 'Water leaving' }).click();
@@ -83,16 +84,16 @@ async function verify(page) {
   check(await page.evaluate(() => ['pond-depth', 'pond-outline', 'pond-patch', 'barriers']
     .every(id => window.__map.getLayoutProperty(id, 'visibility') === 'none')), 'Incomplete overlay hide');
   await page.locator('.layer[data-id="barriers"] .layer-name').click();
-  await page.locator('[data-tab="catchments"]').click();
+  await openTab(page, 'catchments');
   await page.locator('[data-zoom="rudawa"]').click();
   check(await page.evaluate(() => window.__map.getLayoutProperty('pond-depth', 'visibility')) === 'none', 'Focus leaks pond');
-  await page.locator('[data-tab="layers"]').click();
+  await openTab(page, 'layers');
   check(await page.evaluate(() => window.__map.getLayoutProperty('pond-depth', 'visibility')) === 'visible', 'Focus restore failed');
   // Metadata failure must not leave an old numerical result in the detail pane.
   await page.route('**/ditch-ponding-meta.json', route => route.fulfill({ status: 503, body: 'Unavailable' }));
   await page.reload();
   await page.waitForFunction(() => window.__map?.getLayer('barriers') && document.querySelector('[data-view="barriers"]'));
-  await page.locator('[data-lang="en"]').click();
+  await setLanguage(page, 'en');
   await page.locator('[data-view="barriers"]').click();
   const coordinate = await page.evaluate(async () => {
     const d = await (await fetch('data/ditch-ponding-sites.json')).json();

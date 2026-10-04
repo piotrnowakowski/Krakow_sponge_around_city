@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { launch, ready } from './check.mjs';
+import { setLanguage } from './mobile-helpers.mjs';
 
 const url = process.argv[2] || 'http://127.0.0.1:5182/';
 const out = new URL('../output/mobile-reporting/', import.meta.url);
@@ -56,11 +57,21 @@ try {
     assert.equal(await page.evaluate(() => window.geoCalls), 0, 'No location request on page load');
     assert.equal(await page.locator('#tour-invite').isVisible(), false);
     const map = await page.locator('#map').boundingBox();
-    assert.ok(map.height > 600, `Map uses most of the viewport at ${width}px: ${map.height}`);
+    assert.ok(map.height > 844 * .6, `Map uses most of the viewport at ${width}px: ${map.height}`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.equal(await page.locator('.tabs').isVisible(), false);
     assert.equal(await page.locator('#report-fab').isVisible(), false);
     await shot(page, `${width}-map`);
+    assert.equal(await page.locator('#mobile-sheet-title').innerText(), 'Co chcesz zobaczyć?');
+    assert.equal(await page.locator('#mobile-sheet-subtitle').count(), 0);
+    assert.equal(await page.locator('.mobile-nav').count(), 0);
+    await page.locator('[data-topic=retention]').click();
+    assert.equal(await page.evaluate(() => window.__map.getLayoutProperty('barriers', 'visibility')), 'visible');
+    await page.locator('[data-topic=drought]').click();
+    assert.equal(await page.locator('#panel-drought').isVisible(), true);
+    await page.locator('#mobile-map').click();
+    await page.locator('[data-topic=rivers]').click();
+    assert.equal(await page.evaluate(() => window.__map.getLayoutProperty('barriers', 'visibility')), 'none');
     await page.locator('#mobile-sheet-toggle').click();
     await page.locator('[data-view=ditches]').click();
     assert.equal(await page.locator('[data-view=ditches]').getAttribute('aria-pressed'), 'true');
@@ -86,9 +97,9 @@ try {
     await page.locator('#mobile-basemap').selectOption('relief');
     assert.equal(await page.locator('[data-basemap=relief]').getAttribute('aria-pressed'), 'true');
     await page.locator('#mobile-basemap').selectOption('light');
-    await page.locator('[data-lang=en]').click();
-    assert.equal(await page.locator('#mobile-sheet-title').innerText(), 'Explore the map');
-    await page.locator('[data-lang=pl]').click();
+    await setLanguage(page, 'en');
+    assert.equal(await page.locator('#mobile-sheet-title').innerText(), 'What would you like to see?');
+    await setLanguage(page, 'pl');
     await page.locator('#mobile-report').click();
     await page.locator('#report-dialog[open]').waitFor();
     assert.equal(await page.evaluate(() => window.geoCalls), 1);

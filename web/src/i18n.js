@@ -3,8 +3,9 @@ import { BARRIER_STRINGS } from './ditch-barrier-i18n.js';
 
 const STRINGS = {
   en: {
-    mobile_explore: 'Explore the map',
-    mobile_explore_hint: 'Rivers and catchments around Kraków',
+    mobile_explore: 'What would you like to see?',
+    mobile_retention: 'Retention',
+    mobile_drought: 'Drought',
     mobile_back_map: 'Tap to return to the map',
     mobile_more: 'More',
     mobile_saved_reports: 'My observations',
@@ -334,8 +335,9 @@ const STRINGS = {
     `,
   },
   pl: {
-    mobile_explore: 'Odkrywaj mapę',
-    mobile_explore_hint: 'Rzeki i zlewnie wokół Krakowa',
+    mobile_explore: 'Co chcesz zobaczyć?',
+    mobile_retention: 'Retencja',
+    mobile_drought: 'Susza',
     mobile_back_map: 'Dotknij, aby wrócić do mapy',
     mobile_more: 'Więcej',
     mobile_saved_reports: 'Moje obserwacje',

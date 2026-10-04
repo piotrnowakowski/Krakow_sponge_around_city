@@ -49,4 +49,5 @@ export function selectView(map, state, id) {
   } else return;
   state.view = id;
   applyView(map, state);
+  document.dispatchEvent(new CustomEvent('app:view-change', { detail: id }));
 }

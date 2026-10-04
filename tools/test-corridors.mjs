@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { launch, ready, watch } from './check.mjs';
+import { setLanguage } from './mobile-helpers.mjs';
 
 const url = process.argv[2] || 'http://127.0.0.1:5175/';
 const output = new URL('../output/corridors/', import.meta.url);
@@ -33,7 +34,7 @@ try {
     assert.equal(result.color.at(-1), '#d62828');
     assert.ok(result.properties.building_distance_m < 5);
     for (const lang of ['en', 'pl']) {
-      await page.locator(`[data-lang="${lang}"]`).click();
+      await setLanguage(page, lang);
       await page.mouse.click(result.x, result.y);
       const popup = page.locator('.maplibregl-popup-content');
       await popup.waitFor();

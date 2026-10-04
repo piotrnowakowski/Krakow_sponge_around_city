@@ -250,11 +250,23 @@ async function main() {
     map,
     switchTab: (name) => {
       if (focusedId && name !== 'catchments') showCatchment(map, null);
+      if (name === 'about') renderAbout();
       switchTab(name);
     },
     startReport: () => startPicking(),
     startTour,
     setBasemap: (which) => setBasemapButton(map, which),
+    getView: () => state.view,
+    onMenuOpen: () => barrierUI?.clear(),
+    selectTopic: (topic) => {
+      if (!layersReady) return;
+      if (focusedId) showCatchment(map, null);
+      barrierUI?.clear();
+      document.querySelectorAll('.maplibregl-popup').forEach((popup) => popup.remove());
+      selectView(map, state, { rivers: 'rivers', retention: 'barriers', drought: 'monitoring' }[topic]);
+      renderAll(map);
+      switchTab(topic === 'drought' ? 'drought' : 'layers');
+    },
   });
   document.addEventListener('app:report-pick', () => {
     if (!document.getElementById('tour').hidden) closeTour();

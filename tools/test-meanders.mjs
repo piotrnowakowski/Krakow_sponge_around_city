@@ -1,8 +1,9 @@
+import { setLanguage, openTab, startStory } from './mobile-helpers.mjs';
 // Regression: true free-only filtering, calculated geometry and story step 5.
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { launch, ready, watch } from './check.mjs';
+import { launch, ready } from './check.mjs';
 
 const url = process.argv[2] || 'http://127.0.0.1:5187/';
 const output = new URL('../output/meanders/', import.meta.url);
@@ -13,11 +14,21 @@ try {
   for (const [name, viewport] of [['desktop', { width: 1450, height: 1000 }], ['mobile', { width: 390, height: 844 }]]) {
     const page = await browser.newPage({ viewport });
     const errors = [];
-    watch(page, errors);
+    page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+    const externalFailures = new Set();
+    page.on('console', (message) => {
+      if (message.type() !== 'error') return;
+      const source = message.location().url;
+      // Geoportal availability is independent of the app. Keep this limitation visible,
+      // while still failing on application errors and failures from any other source.
+      if (source.startsWith('https://mapy.geoportal.gov.pl/') && message.text() === 'Failed to load resource: net::ERR_EMPTY_RESPONSE') externalFailures.add(source.split('?')[0]);
+      else errors.push(`console: ${message.text()} (${source})`);
+    });
     await page.addInitScript(() => localStorage.setItem('ks_tour_seen', '1'));
     await page.goto(url);
     await ready(page);
-    await page.locator('[data-lang="en"]').click();
+    await openTab(page, 'layers');
+    await setLanguage(page, 'en');
     await page.locator('[data-view="corridors"]').click();
     const free = page.locator('[data-free-corridors]');
     await free.check();
@@ -35,10 +46,10 @@ try {
     assert.equal(await page.evaluate(() => window.__map.getFilter('meander-proposal')[1][2]), otherId);
     await page.locator('[data-meander-select]').selectOption(id);
     // Catchment focus temporarily hides the comparison and restores it on exit.
-    await page.locator('[data-tab="catchments"]').click();
+    await openTab(page, 'catchments');
     await page.locator('[data-zoom="rudawa"]').click();
     assert.equal(await page.locator('#meander-key').isVisible(), false);
-    await page.locator('[data-tab="layers"]').click();
+    await openTab(page, 'layers');
     assert.equal(await page.locator('#meander-key').isVisible(), true);
     await free.uncheck();
     assert.equal(await page.evaluate(() => window.__map.getFilter('corridors') ?? null), null);
@@ -52,8 +63,8 @@ try {
     assert.equal(await free.isChecked(), true);
 
     for (const lang of ['en', 'pl']) {
-      await page.locator(`[data-lang="${lang}"]`).click();
-      await page.locator('#tour-btn').click();
+      await setLanguage(page, lang);
+      await startStory(page);
       for (let i = 1; i < 5; i++) await page.locator('[data-tour="next"]').click();
       await page.waitForTimeout(1700);
       assert.match(await page.locator('.tour-count').innerText(), /5.*5/);
@@ -84,6 +95,7 @@ try {
       assert.equal(await page.locator('#panel-reports').getAttribute('class'), 'panel active');
     }
     assert.deepEqual(errors, []);
+    if (externalFailures.size) console.log(`${name}: external LiDAR unavailable: ${[...externalFailures].join(', ')}`);
     console.log(`${name}: EN/PL free filter, measured proposal, focus restoration, five-step story and accessibility passed`);
     await page.close();
   }
@@ -97,12 +109,13 @@ try {
     await page.route('**/data/meanders.json', (route) => route.fulfill({ status, body, contentType: 'application/json' }));
     await page.goto(`${url}?notour`);
     await ready(page);
-    await page.locator('[data-lang="en"]').click();
+    await openTab(page, 'layers');
+    await setLanguage(page, 'en');
     await page.locator('[data-view="corridors"]').click();
     assert.match(await page.locator('.meander-controls [role="status"]').innerText(), message);
     await page.locator('[data-free-corridors]').check();
     assert.deepEqual(await page.evaluate(() => window.__map.getFilter('corridors')), ['==', ['get', 'room_class'], 'open']);
-    await page.locator('#tour-btn').click();
+    await startStory(page);
     for (let i = 1; i < 5; i++) await page.locator('[data-tour="next"]').click();
     assert.match(await page.locator('#tour').innerText(), message);
     assert.equal(await page.locator('#meander-key').isVisible(), false);

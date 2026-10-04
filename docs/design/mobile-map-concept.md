@@ -1,22 +1,24 @@
-# Mobile map concept
+# Approved mobile map design
 
-Generated with the built-in imagegen tool on 2026-10-04, using the supplied phone screenshot as a visual reference. `mobile-map-concept.png` is a design reference, not map data or an application background. The actual interface uses the existing interactive geographic layers.
+Reference: [option 2 without the subtitle](mobile-map-approved.png), approved by the user on 2026-10-04. Generated with the built-in imagegen tool. This PNG is a visual reference; the application continues to render its real interactive map data.
 
-## Final generation prompt
+## Implemented layout
 
-Use case: ui-mockup
-Asset type: preview concept for a mobile web mapping app redesign
-Input images: Image 1 is a reference of the existing Polish Kraków Sponge app, not an edit target.
-Primary request: Design a much calmer, implementable mobile map interface for this exact app, preserving its navy and blue identity, Polish language and geographic river map. Show one high fidelity mobile screen, straight on, no device frame or browser chrome. Compact white header with small blue droplet, "Gąbka Krakowa" and subtle "PL / EN". Map occupies nearly the full screen. One compact basemap control at upper left labeled "Mapa ▾", small zoom buttons upper right. At bottom a compact white rounded sheet with a small handle, heading "Odkrywaj mapę", and a single line "Rzeki i zlewnie wokół Krakowa" plus a disclosure chevron. Beneath this, a clean three-item navigation "Mapa", "Zgłoś", "Więcej". Report action visually clear, blue plus icon. No onboarding popup, no large yellow story button, no grids of cards obscuring map, no redundant report floating button. Generous empty space around controls, readable 14–16px-equivalent typography and 44px touch targets. Retain map with labels Rudawa, Prądnik, Dłubnia, Kraków, pale land and clear blue rivers. Design concept only; precise geographic data will come from the existing implementation.
+Navy header with a compact language selector and menu. The default bottom sheet contains only the heading, Rivers / Retention / Drought topic choices and the report button. The subtitle was removed, and there is no bottom navigation bar or unsolicited mobile tour popup. Detailed views and the guided story remain in the menu. Retention opens the current terrain-ponding candidate layer; drought opens monitoring and its information panel.
 
-## Implementation
+Reports request browser location only after the user starts adding an observation. Denial, timeout and missing browser support retain manual map selection. Late results cannot override a cancellation or manually selected point. Location corrections preserve the draft fields and photo. Reports remain browser-local until explicitly exported or shared.
 
-Compact header, map-first initial viewport, collapsible exploration panel, basemap selector and three bottom actions. The story is available through More instead of an unsolicited mobile popup. Existing desktop panels remain available.
+## Image revision prompt
 
-Reporting requests browser location only after the user starts adding an observation. Permission denial, timeout and missing support retain manual selection. Pending results are ignored after cancellation or manual selection. A location correction retains the draft fields and photo. Reports remain browser-local until explicitly exported or shared.
+Remove the subtitle sentence ?Poznaj rzeki wok?? Krakowa.? completely from option 2. Close up the vacated space between the topic selector and the report button. Reduce the bottom sheet height accordingly, giving the space to the map. Preserve the existing header, controls, geographic-map styling, heading, three topic choices and report button.
 
-Browser API reference: https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition
+## Validation
 
-Validation: `npm run build --prefix web` and `node tools/test-mobile-reporting.mjs http://127.0.0.1:5182/`. Browser checks use simulated coordinates; real device permission prompts and sensor accuracy require device testing.
+- `npm run build --prefix web`
+- `node tools/test-mobile-reporting.mjs <url>`: 320/390/768px, desktop, topic navigation, no automatic location access on load, permission success, denial, timeout/retry, unsupported location, manual correction, draft/photo preservation and stale response rejection.
+- `node tools/test-corridors.mjs <url>`: desktop/mobile measured river detail in EN/PL.
+- `node tools/test-ditch-barriers-browser.js <url>`: terrain-ponding detail, geometry, methods and failure recovery.
+- `node tools/test-meanders.mjs <url>`: filters, measured proposals, five-step story and accessibility. Geoportal LiDAR transport failures are reported separately from app regressions.
+- `node tools/test-a11y.mjs <url>`: desktop and mobile map/menu/views/location/form.
 
-Additional regression checks: `tools/test-corridors.mjs` (desktop/mobile, English/Polish), `tools/test-tour.mjs` (desktop/mobile) and `tools/test-a11y.mjs` (desktop panels, mobile map/menu/views/location/form). Screenshots from the reporting suite are saved under `output/mobile-reporting/`.
+Browser checks use simulated coordinates; real device permission prompts and sensor accuracy require device testing. Screenshots are saved under `output/mobile-reporting/`.
